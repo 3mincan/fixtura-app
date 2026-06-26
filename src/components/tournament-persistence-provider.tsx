@@ -3,17 +3,24 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { StatePanel } from '@/components/state-panel';
+import {
+  buildOfficialGroupFixtureResults,
+  type FixtureSourceMatch,
+} from '@/data/worldcup-fixtures';
 import { parseAppSettingsJson, saveAppSettings } from '@/db/app-settings';
 import { initializeDatabase } from '@/db/init';
 import type { DatabaseClient } from '@/db/types';
 import { resolveDeviceAppLanguage } from '@/i18n/device-locale';
 import { useTranslation } from '@/hooks/use-translation';
+import { fetchWorldCup2026Data } from '@/services/backend-api';
 import { useAppStore } from '@/store/app-store';
+import { useOfficialResultsStore } from '@/store/official-results-store';
 import {
   enableTournamentPersistence,
   hydrateTournamentStore,
 } from '@/store/tournament-persistence';
 import { useTournamentStore } from '@/store/tournament-store';
+import { computeAllGroupStandings } from '@/simulation/compute-group-standings';
 import { Layout } from '@/theme/tokens';
 import { pickPersistableAppSettings } from '@/utils/pick-app-settings';
 import { isTerminalTournamentPhase } from '@/utils/tournament-phase';
@@ -46,6 +53,27 @@ async function syncOnboardingFromRestoredProgress(db: DatabaseClient) {
   await saveAppSettings(db, pickPersistableAppSettings(nextSettings));
 }
 
+async function syncOfficialResultsFromBackend() {
+  const source = await fetchWorldCup2026Data();
+
+  if (!source) {
+    return;
+  }
+
+  const groupFixtures = source.matches.filter(
+    (match): match is FixtureSourceMatch & { group: string } => Boolean(match.group),
+  );
+  const results = buildOfficialGroupFixtureResults(groupFixtures);
+
+  useOfficialResultsStore.getState().hydrateResults(results);
+
+  const completedMatches = useTournamentStore.getState().completedMatches;
+
+  useTournamentStore.setState({
+    groupStandings: computeAllGroupStandings(completedMatches),
+  });
+}
+
 export function TournamentPersistenceProvider({
   children,
 }: TournamentPersistenceProviderProps) {
@@ -59,6 +87,8 @@ export function TournamentPersistenceProvider({
 
     async function setup() {
       try {
+        void syncOfficialResultsFromBackend();
+
         await initializeDatabase(db);
 
         const settingsRow = await db.getFirstAsync<{ settings_json: string | null }>(

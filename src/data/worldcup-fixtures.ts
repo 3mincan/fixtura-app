@@ -3,6 +3,7 @@ import worldCupTeamsJson from '../../worldcup.teams.json';
 
 import { buildTeamNameLookup, resolveTeamName } from '@/data/resolve-team-name';
 import type { WorldCupTeamSource } from '@/data/worldcup-team-source';
+import { useOfficialResultsStore } from '@/store/official-results-store';
 import type { Match, PeriodScore } from '@/types/match';
 
 export type FixtureSourceFile = {
@@ -53,7 +54,7 @@ function mapSourceScoreToPeriodScore(score: FixtureSourceScore): PeriodScore {
   };
 }
 
-function buildOfficialGroupFixtureResults(
+export function buildOfficialGroupFixtureResults(
   sources: Array<FixtureSourceMatch & { group: string }>,
 ): Record<string, PeriodScore> {
   const results: Record<string, PeriodScore> = {};
@@ -139,11 +140,21 @@ export function mergeOfficialGroupResults(completedMatches: Match[]): Match[] {
 }
 
 export function getOfficialFixtureResult(matchId: string): PeriodScore | undefined {
-  return officialGroupFixtureResults[matchId];
+  return getOfficialGroupFixtureResults()[matchId];
 }
 
 export function hasOfficialFixtureResult(matchId: string): boolean {
-  return matchId in officialGroupFixtureResults;
+  return matchId in getOfficialGroupFixtureResults();
+}
+
+function getOfficialGroupFixtureResults(): Record<string, PeriodScore> {
+  const officialResultsStore = useOfficialResultsStore.getState();
+
+  if (officialResultsStore.fetchedAt !== null) {
+    return officialResultsStore.results;
+  }
+
+  return officialGroupFixtureResults;
 }
 
 export function getWorldCupGroupFixtures(groupId: string): Match[] {

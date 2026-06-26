@@ -1,4 +1,5 @@
 import { getBackendBaseUrl } from '@/config/env';
+import type { FixtureSourceFile } from '@/data/worldcup-fixtures';
 import type { AppLanguage } from '@/types/app-settings';
 import type { Match, PeriodScore } from '@/types/match';
 import type { Standing } from '@/types/standing';
@@ -18,6 +19,12 @@ type RemoteConfigResponse = {
     adsEnabled?: boolean;
     supportedTournaments?: string[];
   };
+};
+
+type WorldCup2026Response = {
+  data?: unknown;
+  fetchedAt?: unknown;
+  sourceUrl?: unknown;
 };
 
 const REQUEST_TIMEOUT_MS = 12_000;
@@ -86,6 +93,24 @@ export async function resolveBackendMatchScore(input: {
   return { home, away };
 }
 
+export async function fetchWorldCup2026Data(): Promise<FixtureSourceFile | null> {
+  const response = await fetchWithTimeout('/worldcup/2026', {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = (await response.json()) as WorldCup2026Response;
+
+  if (!isFixtureSourceFile(payload.data)) {
+    return null;
+  }
+
+  return payload.data;
+}
+
 async function fetchWithTimeout(path: string, init: RequestInit): Promise<Response> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -102,4 +127,14 @@ async function fetchWithTimeout(path: string, init: RequestInit): Promise<Respon
 
 function isValidScore(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 9;
+}
+
+function isFixtureSourceFile(value: unknown): value is FixtureSourceFile {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const candidate = value as { name?: unknown; matches?: unknown };
+
+  return typeof candidate.name === 'string' && Array.isArray(candidate.matches);
 }
