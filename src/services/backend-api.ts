@@ -1,0 +1,105 @@
+import { getBackendBaseUrl } from '@/config/env';
+import type { AppLanguage } from '@/types/app-settings';
+import type { Match, PeriodScore } from '@/types/match';
+import type { Standing } from '@/types/standing';
+
+type BackendScoreResponse = {
+  score?: {
+    home?: unknown;
+    away?: unknown;
+  };
+};
+
+type RemoteConfigResponse = {
+  config?: {
+    minSupportedAppVersion?: string;
+    maintenanceMode?: boolean;
+    aiProxyEnabled?: boolean;
+    adsEnabled?: boolean;
+    supportedTournaments?: string[];
+  };
+};
+
+const REQUEST_TIMEOUT_MS = 12_000;
+
+export async function fetchRemoteConfig(): Promise<RemoteConfigResponse['config'] | null> {
+  const response = await fetchWithTimeout('/remote-config', {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = (await response.json()) as RemoteConfigResponse;
+  return payload.config ?? null;
+}
+
+export async function recordBackendEvent(input: {
+  name: string;
+  payload?: Record<string, unknown>;
+  userId?: string | null;
+}): Promise<void> {
+  await fetchWithTimeout('/events', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(input.userId ? { 'x-user-id': input.userId } : {}),
+    },
+    body: JSON.stringify({
+      name: input.name,
+      payload: input.payload ?? {},
+    }),
+  });
+}
+
+export async function resolveBackendMatchScore(input: {
+  fixture: Match;
+  completedMatches?: Match[];
+  groupStandings?: Record<string, Standing[]>;
+  language?: AppLanguage;
+}): Promise<PeriodScore | null> {
+  const response = await fetchWithTimeout('/ai/match-score', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      fixture: input.fixture,
+      completedMatches: input.completedMatches ?? [],
+      groupStandings: input.groupStandings ?? {},
+      language: input.language ?? 'en',
+    }),
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = (await response.json()) as BackendScoreResponse;
+  const { home, away } = payload.score ?? {};
+
+  if (!isValidScore(home) || !isValidScore(away)) {
+    return null;
+  }
+
+  return { home, away };
+}
+
+async function fetchWithTimeout(path: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(`${getBackendBaseUrl()}${path}`, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function isValidScore(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 9;
+}

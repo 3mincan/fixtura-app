@@ -9,6 +9,7 @@ import type { AppLanguage } from '@/types/app-settings';
 import type { Match, PeriodScore } from '@/types/match';
 import type { Standing } from '@/types/standing';
 import type { TeamRating } from '@/types/team';
+import { resolveBackendMatchScore } from '@/services/backend-api';
 import { createSeededRandom } from '@/utils/seeded-random';
 import type { SeededRandom } from '@/utils/seeded-random';
 import { pickWeighted, type WeightedOutcome } from '@/utils/weighted-random';
@@ -160,6 +161,17 @@ export async function resolveMatchScore(input: ResolveMatchScoreInput): Promise<
     seed = 'ai-match-score',
   } = input;
 
+  const backendScore = await tryResolveBackendScore({
+    fixture,
+    completedMatches,
+    groupStandings,
+    language,
+  });
+
+  if (backendScore) {
+    return backendScore;
+  }
+
   if (apiKey) {
     if (Date.now() < geminiBlockedUntilMs) {
       return simulateRatingBasedFallbackScore(fixture, ratings, seed);
@@ -213,6 +225,17 @@ export async function resolveMatchScores(
       ]),
     );
 
+  const backendScores = await resolveBackendScores({
+    fixtures,
+    completedMatches,
+    groupStandings,
+    language,
+  });
+
+  if (backendScores) {
+    return backendScores;
+  }
+
   if (apiKey) {
     if (Date.now() < geminiBlockedUntilMs) {
       return fallbackScores();
@@ -242,4 +265,47 @@ export async function resolveMatchScores(
   }
 
   return fallbackScores();
+}
+
+async function tryResolveBackendScore(input: {
+  fixture: Match;
+  completedMatches: Match[];
+  groupStandings?: Record<string, Standing[]>;
+  language: AppLanguage;
+}): Promise<PeriodScore | null> {
+  try {
+    return await resolveBackendMatchScore(input);
+  } catch {
+    return null;
+  }
+}
+
+async function resolveBackendScores(input: {
+  fixtures: Match[];
+  completedMatches: Match[];
+  groupStandings?: Record<string, Standing[]>;
+  language: AppLanguage;
+}): Promise<Record<string, PeriodScore> | null> {
+  try {
+    const scores = await Promise.all(
+      input.fixtures.map(async (fixture) => {
+        const score = await resolveBackendMatchScore({
+          fixture,
+          completedMatches: input.completedMatches,
+          groupStandings: input.groupStandings,
+          language: input.language,
+        });
+
+        return [fixture.id, score] as const;
+      }),
+    );
+
+    if (scores.some(([, score]) => score === null)) {
+      return null;
+    }
+
+    return Object.fromEntries(scores) as Record<string, PeriodScore>;
+  } catch {
+    return null;
+  }
 }
