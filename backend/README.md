@@ -26,12 +26,25 @@ HOST=127.0.0.1 PORT=4000 npm run start --prefix backend
 
 ## Dokploy / Traefik
 
-Use the Dockerfile in this folder.
+Use either Nixpacks or the Dockerfile in this folder. Dokploy's Nixpacks builder will read
+`nixpacks.toml` automatically.
 
-Recommended Dokploy settings:
+Recommended Dokploy settings for Nixpacks:
+
+- Build type: Nixpacks
+- Build path / root directory: `.`
+- Install command: leave empty
+- Build command: leave empty
+- Start command: leave empty
+- App port / target port: `4000`
+- Domain: `https://fixtura-backend.redsoft.uk`
+- Do not include `:4000` in the public HTTPS URL.
+
+Recommended Dokploy settings for Dockerfile:
 
 - Build type: Dockerfile
 - Dockerfile path: `Dockerfile`
+- Build context: `.`
 - App port / target port: `4000`
 - Domain: `https://fixtura-backend.redsoft.uk`
 - Do not include `:4000` in the public HTTPS URL.
@@ -43,6 +56,12 @@ HOST=0.0.0.0
 PORT=4000
 DATA_DIR=/app/data
 GEMINI_API_KEY=
+```
+
+If Dokploy exposes build environment variables, also set:
+
+```bash
+NIXPACKS_NODE_VERSION=20
 ```
 
 Traefik should terminate HTTPS and proxy traffic to the container's internal `4000` port:

@@ -1,0 +1,15 @@
+[variables]
+NODE_ENV = "production"
+NIXPACKS_NODE_VERSION = "20"
+HOST = "0.0.0.0"
+PORT = "4000"
+DATA_DIR = "/app/data"
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build", "mkdir -p /app/data"]
+
+[start]
+cmd = "npm run start"
