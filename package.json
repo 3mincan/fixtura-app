@@ -5,6 +5,9 @@
   "engines": {
     "node": ">=20.19.4"
   },
+  "volta": {
+    "node": "20.19.4"
+  },
   "dependencies": {
     "@expo/ui": "~56.0.16",
     "expo": "~56.0.9",
