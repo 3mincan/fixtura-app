@@ -2,13 +2,19 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "types": ["node"],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/assets/*": [
-        "./assets/*"
-      ]
+      "@/app/*": ["./src/app/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/data/*": ["./src/data/*"],
+      "@/simulation/*": ["./src/simulation/*"],
+      "@/store/*": ["./src/store/*"],
+      "@/db/*": ["./src/db/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/theme/*": ["./src/theme/*"],
+      "@/assets/*": ["./assets/*"],
+      "@/*": ["./src/*"]
     }
   },
   "include": [
@@ -16,5 +22,8 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
+  ],
+  "exclude": [
+    "**/*.test.ts"
   ]
 }
