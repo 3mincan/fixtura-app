@@ -24,6 +24,35 @@ For local simulator smoke tests, use:
 HOST=127.0.0.1 PORT=4000 npm run start --prefix backend
 ```
 
+## Dokploy / Traefik
+
+Use the Dockerfile in this folder.
+
+Recommended Dokploy settings:
+
+- Build type: Dockerfile
+- Dockerfile path: `Dockerfile`
+- App port / target port: `4000`
+- Domain: `https://fixtura-backend.redsoft.uk`
+- Do not include `:4000` in the public HTTPS URL.
+
+Environment variables:
+
+```bash
+HOST=0.0.0.0
+PORT=4000
+DATA_DIR=/app/data
+GEMINI_API_KEY=
+```
+
+Traefik should terminate HTTPS and proxy traffic to the container's internal `4000` port:
+
+```txt
+https://fixtura-backend.redsoft.uk -> fixtura-backend:4000
+```
+
+If `https://fixtura-backend.redsoft.uk/` returns `Bad Gateway`, check that Dokploy's target port is `4000` and the container logs show `Server listening at ...:4000`.
+
 ## Endpoints
 
 ### Sessions
