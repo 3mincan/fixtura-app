@@ -9,6 +9,7 @@ The mobile app keeps the tournament simulation engine local. This backend is res
 - remote config
 - analytics events
 - secure AI match-score proxy
+- daily-cached World Cup fixture/results data from OpenFootball
 
 ## Setup
 
@@ -56,6 +57,8 @@ HOST=0.0.0.0
 PORT=4000
 DATA_DIR=/app/data
 GEMINI_API_KEY=
+WORLD_CUP_2026_SOURCE_URL=https://raw.githubusercontent.com/openfootball/worldcup.json/refs/heads/master/2026/worldcup.json
+WORLD_CUP_2026_CACHE_TTL_MS=86400000
 ```
 
 If Dokploy exposes build environment variables, also set:
@@ -121,6 +124,16 @@ Simulation body:
 - `POST /ai/match-score`
 - Requires `GEMINI_API_KEY` in `backend/.env`
 - Body: `{ "fixture": { "id": "fixture-1", "homeTeamId": "brazil", "awayTeamId": "germany" } }`
+
+### World Cup Data
+
+- `GET /worldcup/2026`
+- Fetches OpenFootball's `2026/worldcup.json` when the backend cache is older than 24 hours.
+- Stores the cached copy in `DATA_DIR/worldcup-2026.json`.
+
+Manual refresh:
+
+- `POST /worldcup/2026/refresh`
 
 ## Storage
 

@@ -13,4 +13,8 @@ export const env = {
   corsOrigin: process.env.CORS_ORIGIN ?? '*',
   dataDir: path.resolve(backendRoot, process.env.DATA_DIR ?? './data'),
   geminiApiKey: process.env.GEMINI_API_KEY ?? '',
+  worldCup2026SourceUrl:
+    process.env.WORLD_CUP_2026_SOURCE_URL ??
+    'https://raw.githubusercontent.com/openfootball/worldcup.json/refs/heads/master/2026/worldcup.json',
+  worldCup2026CacheTtlMs: Number(process.env.WORLD_CUP_2026_CACHE_TTL_MS ?? 86_400_000),
 };

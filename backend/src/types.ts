@@ -48,6 +48,29 @@ export type RemoteConfig = {
   supportedTournaments: string[];
 };
 
+export type WorldCupFixtureScore = {
+  ft: [number, number];
+  ht?: [number, number];
+};
+
+export type WorldCupFixtureMatch = {
+  round: string;
+  date: string;
+  time: string;
+  team1: string;
+  team2: string;
+  group?: string;
+  ground: string;
+  num?: number;
+  score?: WorldCupFixtureScore;
+  [key: string]: unknown;
+};
+
+export type WorldCupFixtureData = {
+  name: string;
+  matches: WorldCupFixtureMatch[];
+};
+
 export type DatabaseSnapshot = {
   users: User[];
   simulations: SimulationRecord[];

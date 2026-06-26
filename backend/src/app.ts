@@ -8,10 +8,12 @@ import { registerEventRoutes } from './routes/events.js';
 import { registerHealthRoutes } from './routes/health.js';
 import { registerSimulationRoutes } from './routes/simulations.js';
 import { registerUserRoutes } from './routes/users.js';
+import { registerWorldCupRoutes } from './routes/worldcup.js';
 import { AiProxyService } from './services/ai-proxy.js';
 import { EventService } from './services/events.js';
 import { SimulationService } from './services/simulations.js';
 import { UserService } from './services/users.js';
+import { WorldCupDataService } from './services/worldcup-data.js';
 import { JsonStore } from './storage/json-store.js';
 
 export async function buildApp() {
@@ -28,6 +30,11 @@ export async function buildApp() {
   const simulations = new SimulationService(store);
   const events = new EventService(store);
   const aiProxy = new AiProxyService(env.geminiApiKey);
+  const worldCupData = new WorldCupDataService(
+    env.dataDir,
+    env.worldCup2026SourceUrl,
+    env.worldCup2026CacheTtlMs,
+  );
 
   app.setErrorHandler((error, _request, reply) => {
     const statusCode = getStatusCode(error);
@@ -45,6 +52,7 @@ export async function buildApp() {
   await registerConfigRoutes(app);
   await registerEventRoutes(app, events);
   await registerAiRoutes(app, aiProxy);
+  await registerWorldCupRoutes(app, worldCupData);
 
   return app;
 }
