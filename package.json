@@ -67,7 +67,8 @@
     "i18n:sync": "node scripts/build-i18n-catalog.mjs",
     "i18n:materialize": "node scripts/materialize-locale-catalogs.mjs && node scripts/build-i18n-catalog.mjs",
     "splash:lottie": "node scripts/build-splash-lottie.mjs",
-    "splash:lottie:normalize": "node scripts/normalize-splash-lottie.mjs"
+    "splash:lottie:normalize": "node scripts/normalize-splash-lottie.mjs",
+    "icons:build": "node scripts/build-app-icons.mjs"
   },
   "private": true
 }

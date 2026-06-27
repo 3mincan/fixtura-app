@@ -4,24 +4,29 @@
     "slug": "fixtura",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/new/icon.png",
+    "icon": "./assets/images/icon-light.png",
     "scheme": "fixtura",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/new/icon.png",
+      "icon": {
+        "light": "./assets/images/icon-light.png",
+        "dark": "./assets/images/icon-dark.png",
+        "tinted": "./assets/images/icon-tinted.png"
+      },
       "bundleIdentifier": "com.fixtura.app"
     },
     "android": {
       "package": "com.fixtura.app",
       "adaptiveIcon": {
-        "backgroundColor": "#000000",
-        "foregroundImage": "./assets/images/new/icon.png"
+        "foregroundImage": "./assets/images/android-icon-foreground-light.png",
+        "backgroundColor": "#FFFFFF",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/new/icon.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       [
