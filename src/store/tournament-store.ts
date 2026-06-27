@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createSimulationId } from '@/db/simulation-id';
 import { teamRatingsById } from '@/data/team-ratings';
 import { teams } from '@/data/teams';
+import { getOfficialGroupMatchesThroughDate } from '@/data/worldcup-fixtures';
 import { computeAllGroupStandings } from '@/simulation/compute-group-standings';
 import { buildRoundOf32FromFixtures } from '@/simulation/build-round-of-32-from-fixtures';
 import type { KnockoutRoundResult } from '@/simulation/simulate-knockout-stage';
@@ -24,6 +25,7 @@ import { getNextUserMatch, getUserGroupMatches, matchInvolvesTeam } from '@/util
 import { mergeMatchdayResults } from '@/utils/matchday-board';
 
 export type GameMode = 'predict' | 'random';
+export type TournamentStartMode = 'beginning' | 'today';
 
 export type TournamentProgressState = {
   selectedTeamId: string | null;
@@ -46,7 +48,10 @@ export type TournamentProgressState = {
 };
 
 type TournamentStoreActions = {
-  selectTeam: (teamId: string, options?: { gameMode?: GameMode }) => void;
+  selectTeam: (
+    teamId: string,
+    options?: { gameMode?: GameMode; startMode?: TournamentStartMode },
+  ) => void;
   setTournamentState: (tournamentState: TournamentState) => void;
   setCurrentStage: (currentStage: TournamentStage) => void;
   setPendingUserMatch: (pendingUserMatch: Match | null) => void;
@@ -125,6 +130,10 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
   selectTeam: (teamId, options) => {
     const state = get();
     const gameMode = options?.gameMode ?? state.gameMode ?? 'predict';
+    const completedMatches =
+      options?.startMode === 'today' ? getOfficialGroupMatchesThroughDate(new Date()) : [];
+    const groupStandings =
+      completedMatches.length > 0 ? computeAllGroupStandings(completedMatches) : {};
     const isTerminalPhase =
       state.tournamentPhase === 'champion' ||
       state.tournamentPhase === 'eliminated' ||
@@ -140,7 +149,9 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
         selectedTeamId: teamId,
         gameMode,
         activeSimulationId: createSimulationId(),
-        pendingUserMatch: getNextUserMatch(teamId, teams, []),
+        completedMatches,
+        pendingUserMatch: getNextUserMatch(teamId, teams, completedMatches),
+        groupStandings,
         tournamentState: preserveTournamentState
           ? { ...state.tournamentState!, userTeamId: teamId }
           : null,

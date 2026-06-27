@@ -139,6 +139,32 @@ export function mergeOfficialGroupResults(completedMatches: Match[]): Match[] {
   return [...mergedById.values()];
 }
 
+export function getOfficialGroupMatchesThroughDate(date: Date): Match[] {
+  const cutoffDate = formatFixtureDate(date);
+
+  return worldCupGroupFixtures.flatMap((fixture) => {
+    if (!fixture.scheduledDate || fixture.scheduledDate > cutoffDate) {
+      return [];
+    }
+
+    const regulation = getOfficialFixtureResult(fixture.id);
+
+    if (!regulation) {
+      return [];
+    }
+
+    return [
+      {
+        ...fixture,
+        status: 'completed' as const,
+        result: {
+          regulation,
+        },
+      },
+    ];
+  });
+}
+
 export function getOfficialFixtureResult(matchId: string): PeriodScore | undefined {
   return getOfficialGroupFixtureResults()[matchId];
 }
@@ -155,6 +181,14 @@ function getOfficialGroupFixtureResults(): Record<string, PeriodScore> {
   }
 
   return officialGroupFixtureResults;
+}
+
+function formatFixtureDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 }
 
 export function getWorldCupGroupFixtures(groupId: string): Match[] {

@@ -8,14 +8,14 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { IosButton } from '@/components/ui/ios-button';
 import { IosScreen } from '@/components/ui/ios-screen';
 import { ThemedText } from '@/components/themed-text';
 import { teams } from '@/data/teams';
 import { useTranslation } from '@/hooks/use-translation';
-import { useTournamentStore } from '@/store/tournament-store';
+import { useTournamentStore, type TournamentStartMode } from '@/store/tournament-store';
 import { Layout, Radii } from '@/theme/tokens';
 import { filterTeams } from '@/utils/filter-teams';
 
@@ -24,6 +24,7 @@ const WIDE_NUM_COLUMNS = 4;
 
 export function CountrySelectionScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ startMode?: string }>();
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const [query, setQuery] = useState('');
@@ -34,13 +35,15 @@ export function CountrySelectionScreen() {
 
   const filteredTeams = useMemo(() => filterTeams(teams, query), [query]);
   const selectedTeam = filteredTeams.find((team) => team.id === pendingTeamId) ?? null;
+  const startMode: TournamentStartMode =
+    params.startMode === 'today' ? 'today' : 'beginning';
 
   const handleConfirm = () => {
     if (!pendingTeamId) {
       return;
     }
 
-    selectTeam(pendingTeamId, { gameMode: 'predict' });
+    selectTeam(pendingTeamId, { gameMode: 'predict', startMode });
     router.replace('/matchday');
   };
 
