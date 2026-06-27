@@ -11,7 +11,7 @@ const ADMOB_IOS_APP_ID =
 const ADMOB_ANDROID_APP_ID =
   process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ?? 'ca-app-pub-3940256099942544~3347511713';
 const BACKEND_BASE_URL =
-  process.env.EXPO_PUBLIC_BACKEND_BASE_URL ?? 'https://fixtura-backend.redsoft.uk';
+  process.env.EXPO_PUBLIC_BACKEND_BASE_URL ?? 'https://api.fixtura.xyz';
 
 const appExpoConfig = appJson.expo as ExpoConfigWithExtra;
 const appPlugins = (appExpoConfig.plugins ?? []) as NonNullable<ExpoConfig['plugins']>;

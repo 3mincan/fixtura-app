@@ -4,18 +4,18 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
-const OUTPUT_DIR = join(ROOT, 'assets/images/new');
+const OUTPUT_DIR = join(ROOT, 'assets/images');
 const SIZE = 720;
 const FPS = 15;
 
 const SOURCES = [
   {
-    mp4: join(ROOT, 'assets/images/new/fixtura-dark.mp4'),
+    mp4: join(ROOT, 'assets/images/fixtura-dark.mp4'),
     json: join(OUTPUT_DIR, 'fixtura-dark.json'),
     name: 'Fixtura Dark Splash',
   },
   {
-    mp4: join(ROOT, 'assets/images/new/fixtura-light.mp4'),
+    mp4: join(ROOT, 'assets/images/fixtura-light.mp4'),
     json: join(OUTPUT_DIR, 'fixtura-light.json'),
     name: 'Fixtura Light Splash',
   },

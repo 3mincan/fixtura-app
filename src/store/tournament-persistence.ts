@@ -6,6 +6,7 @@ import {
   toPersistableState,
 } from '@/db/persistence';
 import type { DatabaseClient } from '@/db/types';
+import { syncTournamentProgressToBackend } from '@/services/backend-simulation-sync';
 import { useTournamentStore } from '@/store/tournament-store';
 
 let isHydrating = false;
@@ -70,9 +71,17 @@ export function enableTournamentPersistence(db: DatabaseClient): () => void {
       return;
     }
 
-    pendingSaveChain = pendingSaveChain.then(() =>
-      saveTournamentProgress(db, toPersistableState(useTournamentStore.getState())),
-    );
+    pendingSaveChain = pendingSaveChain.then(async () => {
+      const state = toPersistableState(useTournamentStore.getState());
+
+      await saveTournamentProgress(db, state);
+
+      try {
+        await syncTournamentProgressToBackend(db, state);
+      } catch {
+        // Local persistence remains authoritative when the backend is unavailable.
+      }
+    });
   });
 }
 

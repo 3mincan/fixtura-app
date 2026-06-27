@@ -109,7 +109,7 @@ export function HomeMenuScreen() {
       <View style={styles.main}>
         <View style={styles.hero}>
           <Image
-            source={require('@/assets/images/new/logo-mainmenu.png')}
+            source={require('@/assets/images/logo-mainmenu.png')}
             style={styles.logo}
             contentFit="contain"
             accessibilityLabel={t('appName')}

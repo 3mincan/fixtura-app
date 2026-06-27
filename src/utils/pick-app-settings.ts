@@ -6,6 +6,8 @@ export function pickPersistableAppSettings(
   return {
     hasCompletedOnboarding: state.hasCompletedOnboarding,
     hasCompletedTournament: state.hasCompletedTournament,
+    backendAnonymousId: state.backendAnonymousId,
+    backendUserId: state.backendUserId,
     musicEnabled: state.musicEnabled,
     soundEffectsEnabled: state.soundEffectsEnabled,
     hapticsEnabled: state.hapticsEnabled,

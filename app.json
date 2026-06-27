@@ -43,10 +43,10 @@
         {
           "resizeMode": "cover",
           "backgroundColor": "#FFFFFF",
-          "image": "./assets/images/new/fixtura-light.png",
+          "image": "./assets/images/fixtura-light.png",
           "dark": {
             "backgroundColor": "#000000",
-            "image": "./assets/images/new/fixtura-dark.png"
+            "image": "./assets/images/fixtura-dark.png"
           }
         }
       ],

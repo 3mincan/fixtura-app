@@ -7,8 +7,8 @@ type SplashScheme = 'dark' | 'light';
 const SPLASH_WEB_DURATION_MS = 700;
 
 const SPLASH_IMAGES = {
-  dark: require('@/assets/images/new/fixtura-dark.png'),
-  light: require('@/assets/images/new/fixtura-light.png'),
+  dark: require('@/assets/images/fixtura-dark.png'),
+  light: require('@/assets/images/fixtura-light.png'),
 } as const;
 
 const SPLASH_BACKGROUNDS: Record<SplashScheme, string> = {

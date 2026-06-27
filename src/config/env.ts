@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 
-const DEFAULT_BACKEND_BASE_URL = 'https://fixtura-backend.redsoft.uk';
+const DEFAULT_BACKEND_BASE_URL = 'https://api.fixtura.xyz';
 
 export function getBackendBaseUrl(): string {
   const fromExtra = Constants.expoConfig?.extra?.backendBaseUrl;

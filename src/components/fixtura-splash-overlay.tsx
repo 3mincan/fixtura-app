@@ -17,8 +17,8 @@ const SPLASH_DURATION_MS = Math.round((SPLASH_FRAME_COUNT / SPLASH_FPS) * 1000);
 const SPLASH_FALLBACK_MS = SPLASH_DURATION_MS + 500;
 
 const SPLASH_SOURCES = {
-  dark: require('@/assets/images/new/fixtura-dark.json'),
-  light: require('@/assets/images/new/fixtura-light.json'),
+  dark: require('@/assets/images/fixtura-dark.json'),
+  light: require('@/assets/images/fixtura-light.json'),
 } as const;
 
 const SPLASH_BACKGROUNDS: Record<SplashScheme, string> = {

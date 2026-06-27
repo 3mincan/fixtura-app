@@ -5,6 +5,8 @@ export type AppLanguage = 'en' | 'tr' | 'de' | 'es' | 'ar' | 'ja' | 'zh' | 'id' 
 export type AppSettings = {
   hasCompletedOnboarding: boolean;
   hasCompletedTournament: boolean;
+  backendAnonymousId: string | null;
+  backendUserId: string | null;
   musicEnabled: boolean;
   soundEffectsEnabled: boolean;
   hapticsEnabled: boolean;
@@ -18,6 +20,8 @@ export type AppSettings = {
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   hasCompletedOnboarding: false,
   hasCompletedTournament: false,
+  backendAnonymousId: null,
+  backendUserId: null,
   musicEnabled: true,
   soundEffectsEnabled: true,
   hapticsEnabled: true,

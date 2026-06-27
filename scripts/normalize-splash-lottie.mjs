@@ -5,8 +5,8 @@ import { join, resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const FILES = [
-  join(ROOT, 'assets/images/new/fixtura-dark.json'),
-  join(ROOT, 'assets/images/new/fixtura-light.json'),
+  join(ROOT, 'assets/images/fixtura-dark.json'),
+  join(ROOT, 'assets/images/fixtura-light.json'),
 ];
 
 function convertWebpDataUriToPngDataUri(dataUri) {

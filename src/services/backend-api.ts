@@ -21,6 +21,22 @@ type RemoteConfigResponse = {
   };
 };
 
+type BackendSessionResponse = {
+  user?: {
+    id?: unknown;
+  };
+};
+
+type BackendSimulationPayload = {
+  id: string;
+  selectedTeamId: string;
+  gameMode: 'predict' | 'random';
+  tournamentPhase: string;
+  currentStage: string;
+  championId: string | null;
+  progress: Record<string, unknown>;
+};
+
 type WorldCup2026Response = {
   data?: unknown;
   fetchedAt?: unknown;
@@ -42,6 +58,23 @@ export async function fetchRemoteConfig(): Promise<RemoteConfigResponse['config'
   return payload.config ?? null;
 }
 
+export async function createBackendSession(anonymousId: string): Promise<string | null> {
+  const response = await fetchWithTimeout('/sessions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ anonymousId }),
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = (await response.json()) as BackendSessionResponse;
+  return typeof payload.user?.id === 'string' ? payload.user.id : null;
+}
+
 export async function recordBackendEvent(input: {
   name: string;
   payload?: Record<string, unknown>;
@@ -58,6 +91,25 @@ export async function recordBackendEvent(input: {
       payload: input.payload ?? {},
     }),
   });
+}
+
+export async function saveBackendSimulation(input: {
+  userId: string;
+  simulation: BackendSimulationPayload;
+}): Promise<boolean> {
+  const response = await fetchWithTimeout(
+    `/simulations/${encodeURIComponent(input.simulation.id)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': input.userId,
+      },
+      body: JSON.stringify(input.simulation),
+    },
+  );
+
+  return response.ok;
 }
 
 export async function resolveBackendMatchScore(input: {
