@@ -2,6 +2,7 @@ import { createSimulationId } from '@/db/simulation-id';
 import type { DatabaseClient } from '@/db/types';
 import { recordBackendEventsBatch } from '@/services/backend-api';
 import { getOrCreateBackendUserId } from '@/services/backend-session';
+import { pushGtmEvent } from '@/services/gtm';
 import type { AnalyticsEventName, QueuedAnalyticsEvent } from '@/types/analytics-events';
 import { useAppStore } from '@/store/app-store';
 
@@ -20,6 +21,8 @@ export function enqueueAnalyticsEvent(
   name: AnalyticsEventName,
   payload: Record<string, unknown> = {},
 ): void {
+  pushGtmEvent(name, payload);
+
   if (!boundDb) {
     return;
   }
