@@ -4,6 +4,7 @@ import { SQLiteProvider } from 'expo-sqlite';
 import { useColorScheme } from 'react-native';
 
 import { MobileAdsProvider } from '@/ads/mobile-ads-provider';
+import { AnalyticsProvider } from '@/components/analytics-provider';
 import { AppErrorBoundary } from '@/components/app-error-boundary';
 import { FixturaSplashOverlay } from '@/components/fixtura-splash-overlay';
 import { GameAudioProvider } from '@/components/game-audio-provider';
@@ -47,7 +48,8 @@ export default function RootLayout() {
         <FixturaSplashOverlay />
         <MobileAdsProvider />
         <TournamentPersistenceProvider>
-          <GameAudioProvider>
+          <AnalyticsProvider>
+            <GameAudioProvider>
             <ThemeProvider value={createNavigationTheme(scheme)}>
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(tabs)" />
@@ -61,7 +63,8 @@ export default function RootLayout() {
                 <Stack.Screen name="default-team" />
               </Stack>
             </ThemeProvider>
-          </GameAudioProvider>
+            </GameAudioProvider>
+          </AnalyticsProvider>
         </TournamentPersistenceProvider>
       </SQLiteProvider>
     </AppErrorBoundary>

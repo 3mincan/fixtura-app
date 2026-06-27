@@ -1,6 +1,7 @@
 import { hasOfficialFixtureResult } from '@/data/worldcup-fixtures';
 import { getGeminiApiKey } from '@/config/env';
 import { resolveMatchScores } from '@/simulation/ai';
+import { useAppStore } from '@/store/app-store';
 import { useAiMatchScoresStore } from '@/store/ai-match-scores-store';
 import type { AppLanguage } from '@/types/app-settings';
 import type { Match, PeriodScore } from '@/types/match';
@@ -30,6 +31,7 @@ export async function ensureAiMatchScoresForFixtures(
     useGemini = true,
   } = input;
   const apiKey = useGemini ? getGeminiApiKey() : null;
+  const backendUserId = useAppStore.getState().backendUserId;
   const store = useAiMatchScoresStore.getState();
 
   const fixturesToResolve = fixtures.filter(
@@ -53,6 +55,7 @@ export async function ensureAiMatchScoresForFixtures(
     const resolvedScores = await resolveMatchScores({
       fixtures: fixturesToResolve,
       apiKey,
+      backendUserId,
       completedMatches,
       groupStandings,
       language,

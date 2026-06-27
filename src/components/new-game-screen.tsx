@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { IosScreen } from '@/components/ui/ios-screen';
 import { useTranslation } from '@/hooks/use-translation';
+import { trackNewGameStarted, trackTeamSelected, trackTournamentStarted } from '@/services/analytics';
 import { useTournamentStore, type TournamentStartMode } from '@/store/tournament-store';
 import { Layout } from '@/theme/tokens';
 import { pickRandomTeam } from '@/utils/pick-random-team';
@@ -29,7 +30,13 @@ export function NewGameScreen() {
     }
 
     if (pendingStartAction === 'random') {
-      selectTeam(pickRandomTeam().id, { gameMode: 'random', startMode });
+      const teamId = pickRandomTeam().id;
+      selectTeam(teamId, { gameMode: 'random', startMode });
+      trackTeamSelected({ teamId, gameMode: 'random', startMode });
+      const simulationId = useTournamentStore.getState().activeSimulationId;
+      if (simulationId) {
+        trackTournamentStarted({ teamId, gameMode: 'random', simulationId });
+      }
       router.replace('/matchday');
     }
   };

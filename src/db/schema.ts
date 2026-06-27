@@ -1,6 +1,6 @@
 export const DATABASE_NAME = 'fixtura.db';
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 export const TABLE_NAMES = [
   'simulations',
@@ -8,6 +8,7 @@ export const TABLE_NAMES = [
   'standings',
   'selected_team',
   'app_settings',
+  'analytics_event_queue',
 ] as const;
 
 export type TableName = (typeof TABLE_NAMES)[number];
@@ -74,6 +75,13 @@ CREATE TABLE IF NOT EXISTS standings (
   PRIMARY KEY (simulation_id, group_id, team_id),
   FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS analytics_event_queue (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
 `;
 
 export const MIGRATION_V2_SQL = `
@@ -82,4 +90,13 @@ ALTER TABLE simulations ADD COLUMN progress_json TEXT;
 
 export const MIGRATION_V3_SQL = `
 ALTER TABLE simulations ADD COLUMN team_id TEXT;
+`;
+
+export const MIGRATION_V5_SQL = `
+CREATE TABLE IF NOT EXISTS analytics_event_queue (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
 `;

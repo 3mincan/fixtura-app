@@ -1,21 +1,15 @@
 import Constants from 'expo-constants';
 
-const DEFAULT_BACKEND_BASE_URL = 'https://api.fixtura.xyz';
+import { getBackendBaseUrl as getBackendBaseUrlFromEnv } from '@/config/backend-url';
 
 export function getBackendBaseUrl(): string {
   const fromExtra = Constants.expoConfig?.extra?.backendBaseUrl;
 
   if (typeof fromExtra === 'string' && fromExtra.length > 0) {
-    return normalizeBaseUrl(fromExtra);
+    return fromExtra.replace(/\/+$/, '');
   }
 
-  const fromProcess = process.env.EXPO_PUBLIC_BACKEND_BASE_URL;
-
-  if (typeof fromProcess === 'string' && fromProcess.length > 0) {
-    return normalizeBaseUrl(fromProcess);
-  }
-
-  return DEFAULT_BACKEND_BASE_URL;
+  return getBackendBaseUrlFromEnv();
 }
 
 export function getGeminiApiKey(): string | null {
@@ -32,8 +26,4 @@ export function getGeminiApiKey(): string | null {
   }
 
   return null;
-}
-
-function normalizeBaseUrl(url: string): string {
-  return url.replace(/\/+$/, '');
 }

@@ -23,6 +23,7 @@ let geminiBlockedUntilMs = 0;
 export type ResolveMatchScoreInput = {
   fixture: Match;
   apiKey?: string | null;
+  backendUserId?: string | null;
   completedMatches?: Match[];
   groupStandings?: Record<string, Standing[]>;
   language?: AppLanguage;
@@ -154,6 +155,7 @@ export async function resolveMatchScore(input: ResolveMatchScoreInput): Promise<
   const {
     fixture,
     apiKey,
+    backendUserId,
     completedMatches = [],
     groupStandings,
     language = 'en',
@@ -163,6 +165,7 @@ export async function resolveMatchScore(input: ResolveMatchScoreInput): Promise<
 
   const backendScore = await tryResolveBackendScore({
     fixture,
+    backendUserId,
     completedMatches,
     groupStandings,
     language,
@@ -206,6 +209,7 @@ export async function resolveMatchScores(
   const {
     fixtures,
     apiKey,
+    backendUserId,
     completedMatches = [],
     groupStandings,
     language = 'en',
@@ -227,6 +231,7 @@ export async function resolveMatchScores(
 
   const backendScores = await resolveBackendScores({
     fixtures,
+    backendUserId,
     completedMatches,
     groupStandings,
     language,
@@ -269,6 +274,7 @@ export async function resolveMatchScores(
 
 async function tryResolveBackendScore(input: {
   fixture: Match;
+  backendUserId?: string | null;
   completedMatches: Match[];
   groupStandings?: Record<string, Standing[]>;
   language: AppLanguage;
@@ -282,6 +288,7 @@ async function tryResolveBackendScore(input: {
 
 async function resolveBackendScores(input: {
   fixtures: Match[];
+  backendUserId?: string | null;
   completedMatches: Match[];
   groupStandings?: Record<string, Standing[]>;
   language: AppLanguage;
@@ -291,6 +298,7 @@ async function resolveBackendScores(input: {
       input.fixtures.map(async (fixture) => {
         const score = await resolveBackendMatchScore({
           fixture,
+          backendUserId: input.backendUserId,
           completedMatches: input.completedMatches,
           groupStandings: input.groupStandings,
           language: input.language,

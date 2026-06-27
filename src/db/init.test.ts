@@ -42,6 +42,7 @@ describe('initializeDatabase', () => {
     assert.ok(getSimulationColumns(sqlite).includes('progress_json'));
     assert.ok(getSimulationColumns(sqlite).includes('team_id'));
     assert.ok(tableExists(sqlite, 'app_settings'));
+    assert.ok(tableExists(sqlite, 'analytics_event_queue'));
   });
 
   it('migrates an existing v1 database to the latest schema', async () => {

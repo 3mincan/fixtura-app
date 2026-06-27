@@ -10,7 +10,9 @@ import { GroupedRow, GroupedSection } from '@/components/ui/grouped-section';
 import { teamsById } from '@/data/teams';
 import { listSavedSimulations, type SavedSimulationSummary } from '@/db/persistence';
 import { useTranslation } from '@/hooks/use-translation';
+import { trackRestoreFailure, trackSavedSimulationOpened } from '@/services/analytics';
 import { openSavedSimulation } from '@/store/tournament-persistence';
+import { useTournamentStore } from '@/store/tournament-store';
 import { formatSimulationDate } from '@/utils/format-simulation-date';
 
 function formatTeamLabel(teamId: string): string {
@@ -54,10 +56,15 @@ export function SavedSimulationsScreen() {
     setOpeningSimulationId(null);
 
     if (result === 'restored') {
+      const { selectedTeamId } = useTournamentStore.getState();
+      if (selectedTeamId) {
+        trackSavedSimulationOpened({ simulationId, teamId: selectedTeamId });
+      }
       router.push('/matchday');
       return;
     }
 
+    trackRestoreFailure({ source: 'saved_simulation', simulationId });
     setOpenError(t('failedRestoreMessage'));
   }
 

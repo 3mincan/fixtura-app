@@ -11,6 +11,7 @@ import { IosButton } from '@/components/ui/ios-button';
 import { IosScreen } from '@/components/ui/ios-screen';
 import { listSavedSimulations } from '@/db/persistence';
 import { useTranslation } from '@/hooks/use-translation';
+import { trackNewGameStarted } from '@/services/analytics';
 import { useAppStore } from '@/store/app-store';
 import { useGameAudioStore } from '@/store/game-audio-store';
 import { useTournamentStore } from '@/store/tournament-store';
@@ -58,6 +59,13 @@ export function HomeMenuScreen() {
     selectedTeamId !== null && !isTerminalTournamentPhase(tournamentPhase);
 
   const openTournamentSelection = () => {
+    if (hasCompletedTournament) {
+      trackNewGameStarted({
+        previousTeamId: selectedTeamId,
+        previousChampionId: useTournamentStore.getState().championId,
+      });
+    }
+
     router.push('/select-tournament');
   };
 

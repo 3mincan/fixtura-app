@@ -15,6 +15,7 @@ import { IosScreen } from '@/components/ui/ios-screen';
 import { ThemedText } from '@/components/themed-text';
 import { teams } from '@/data/teams';
 import { useTranslation } from '@/hooks/use-translation';
+import { trackTeamSelected, trackTournamentStarted } from '@/services/analytics';
 import { useTournamentStore, type TournamentStartMode } from '@/store/tournament-store';
 import { Layout, Radii } from '@/theme/tokens';
 import { filterTeams } from '@/utils/filter-teams';
@@ -44,6 +45,15 @@ export function CountrySelectionScreen() {
     }
 
     selectTeam(pendingTeamId, { gameMode: 'predict', startMode });
+    trackTeamSelected({ teamId: pendingTeamId, gameMode: 'predict', startMode });
+    const simulationId = useTournamentStore.getState().activeSimulationId;
+    if (simulationId) {
+      trackTournamentStarted({
+        teamId: pendingTeamId,
+        gameMode: 'predict',
+        simulationId,
+      });
+    }
     router.replace('/matchday');
   };
 

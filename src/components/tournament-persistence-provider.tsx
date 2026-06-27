@@ -12,6 +12,7 @@ import { initializeDatabase } from '@/db/init';
 import type { DatabaseClient } from '@/db/types';
 import { resolveDeviceAppLanguage } from '@/i18n/device-locale';
 import { useTranslation } from '@/hooks/use-translation';
+import { trackRestoreFailure } from '@/services/analytics';
 import { fetchWorldCup2026Data } from '@/services/backend-api';
 import { useAppStore } from '@/store/app-store';
 import { useOfficialResultsStore } from '@/store/official-results-store';
@@ -106,6 +107,7 @@ export function TournamentPersistenceProvider({
         const result = await hydrateTournamentStore(db);
 
         if (result === 'failed') {
+          trackRestoreFailure({ source: 'startup' });
           setRestoreError(t('failedRestoreMessage'));
         }
 
@@ -126,6 +128,7 @@ export function TournamentPersistenceProvider({
           void syncTournamentCompletionFlag(db);
         });
       } catch {
+        trackRestoreFailure({ source: 'startup' });
         setRestoreError(t('failedRestoreMessage'));
       } finally {
         useAppStore.getState().setAppReady(true);

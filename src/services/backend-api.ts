@@ -1,4 +1,4 @@
-import { getBackendBaseUrl } from '@/config/env';
+import { getBackendBaseUrl } from '@/config/backend-url';
 import type { FixtureSourceFile } from '@/data/worldcup-fixtures';
 import type { AppLanguage } from '@/types/app-settings';
 import type { Match, PeriodScore } from '@/types/match';
@@ -75,22 +75,52 @@ export async function createBackendSession(anonymousId: string): Promise<string 
   return typeof payload.user?.id === 'string' ? payload.user.id : null;
 }
 
+export async function recordBackendEventsBatch(input: {
+  userId?: string | null;
+  events: Array<{
+    name: string;
+    payload?: Record<string, unknown>;
+    clientCreatedAt?: number;
+  }>;
+}): Promise<void> {
+  if (input.events.length === 0) {
+    return;
+  }
+
+  const response = await fetchWithTimeout('/events/batch', {
+    method: 'POST',
+    headers: buildEventHeaders(input.userId),
+    body: JSON.stringify({ events: input.events }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Events batch request failed (${response.status})`);
+  }
+}
+
 export async function recordBackendEvent(input: {
   name: string;
   payload?: Record<string, unknown>;
   userId?: string | null;
+  clientCreatedAt?: number;
 }): Promise<void> {
-  await fetchWithTimeout('/events', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(input.userId ? { 'x-user-id': input.userId } : {}),
-    },
-    body: JSON.stringify({
-      name: input.name,
-      payload: input.payload ?? {},
-    }),
+  await recordBackendEventsBatch({
+    userId: input.userId,
+    events: [
+      {
+        name: input.name,
+        payload: input.payload,
+        clientCreatedAt: input.clientCreatedAt,
+      },
+    ],
   });
+}
+
+function buildEventHeaders(userId?: string | null): HeadersInit {
+  return {
+    'Content-Type': 'application/json',
+    ...(userId ? { 'x-user-id': userId } : {}),
+  };
 }
 
 export async function saveBackendSimulation(input: {
@@ -117,12 +147,11 @@ export async function resolveBackendMatchScore(input: {
   completedMatches?: Match[];
   groupStandings?: Record<string, Standing[]>;
   language?: AppLanguage;
+  userId?: string | null;
 }): Promise<PeriodScore | null> {
   const response = await fetchWithTimeout('/ai/match-score', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: buildEventHeaders(input.userId),
     body: JSON.stringify({
       fixture: input.fixture,
       completedMatches: input.completedMatches ?? [],

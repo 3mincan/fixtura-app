@@ -9,6 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { saveAppSettings } from '@/db/app-settings';
 import { useTranslation } from '@/hooks/use-translation';
 import { useTheme } from '@/hooks/use-theme';
+import { trackOnboardingCompleted } from '@/services/analytics';
 import { useAppStore } from '@/store/app-store';
 import { Layout, Radii } from '@/theme/tokens';
 import { pickPersistableAppSettings } from '@/utils/pick-app-settings';
@@ -48,6 +49,7 @@ export function OnboardingScreen() {
     if (isLastSlide) {
       const nextSettings = completeOnboarding();
       await saveAppSettings(db, pickPersistableAppSettings(nextSettings));
+      trackOnboardingCompleted();
       router.replace('/');
       return;
     }

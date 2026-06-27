@@ -8,7 +8,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { shouldShowMatchdayBanner } from '@/ads/ad-policy';
@@ -33,6 +33,7 @@ import { useAiMatchScores } from '@/hooks/use-ai-match-scores';
 import { useInstantMatchdayClock } from '@/hooks/use-instant-matchday-clock';
 import { useTranslation } from '@/hooks/use-translation';
 import { useTheme } from '@/hooks/use-theme';
+import { trackMatchdayViewed } from '@/services/analytics';
 import { buildRoundOf32FromFixtures } from '@/simulation/build-round-of-32-from-fixtures';
 import { hasAllUserGroupPredictions } from '@/simulation/tournament-journey';
 import { previewAllGroupMatchdayResults } from '@/simulation/play-matchday';
@@ -256,6 +257,22 @@ export function MatchdayHubScreen() {
     pendingUserMatch?.id,
     setPendingUserMatch,
   ]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!selectedTeamId) {
+        return;
+      }
+
+      trackMatchdayViewed({
+        matchday:
+          tournamentPhase === 'group'
+            ? getInitialViewMatchday(completedMatches)
+            : currentStage,
+        phase: tournamentPhase,
+      });
+    }, [selectedTeamId, tournamentPhase, completedMatches, currentStage]),
+  );
 
   const allGroupMatchesStored = useMemo(() => {
     const completedIds = new Set(completedMatches.map((match) => match.id));

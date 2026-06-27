@@ -12,6 +12,7 @@ import { AD_REPORT_EMAIL, PRIVACY_POLICY_URL, SUPPORT_URL } from '@/config/legal
 import { saveAppSettings } from '@/db/app-settings';
 import { clearSavedProgress } from '@/db/persistence';
 import { useTranslation } from '@/hooks/use-translation';
+import { trackSettingChanged } from '@/services/analytics';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/store/app-store';
 import { useAiMatchScoresStore } from '@/store/ai-match-scores-store';
@@ -32,6 +33,12 @@ export function SettingsScreen() {
   const persistSettings = async (patch: Partial<AppSettings>) => {
     const nextSettings = updateSettings(patch);
     await saveAppSettings(db, pickPersistableAppSettings(nextSettings));
+
+    for (const [key, value] of Object.entries(patch)) {
+      if (value !== undefined) {
+        trackSettingChanged({ key, value });
+      }
+    }
   };
 
   const openExternalUrl = async (url: string) => {
