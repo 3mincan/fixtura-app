@@ -14,7 +14,7 @@ import {
   type TournamentJourneyPhase,
 } from '@/simulation/tournament-journey';
 import type { KnockoutBracketMatch } from '@/types/knockout';
-import { advanceThroughMatchdays } from '@/simulation/play-matchday';
+import { advanceThroughMatchdays, isGroupStageComplete } from '@/simulation/play-matchday';
 import { useAiMatchScoresStore } from '@/store/ai-match-scores-store';
 import type { Match, MatchResult, PeriodScore, UserMatchPrediction } from '@/types/match';
 import type { Standing } from '@/types/standing';
@@ -49,7 +49,7 @@ export type TournamentProgressState = {
 type TournamentStoreActions = {
   selectTeam: (
     teamId: string,
-    options?: { gameMode?: GameMode; startMode?: TournamentStartMode },
+    options?: { gameMode?: GameMode; startMode?: TournamentStartMode; currentDate?: Date },
   ) => void;
   setTournamentState: (tournamentState: TournamentState) => void;
   setCurrentStage: (currentStage: TournamentStage) => void;
@@ -130,9 +130,27 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
     const state = get();
     const gameMode = options?.gameMode ?? state.gameMode ?? 'predict';
     const completedMatches =
-      options?.startMode === 'today' ? getOfficialGroupMatchesThroughDate(new Date()) : [];
+      options?.startMode === 'today'
+        ? getOfficialGroupMatchesThroughDate(options.currentDate ?? new Date())
+        : [];
     const groupStandings =
       completedMatches.length > 0 ? computeAllGroupStandings(completedMatches) : {};
+    const startsAfterCompletedGroupStage =
+      completedMatches.length > 0 && isGroupStageComplete(completedMatches);
+    const startSelectedTeamId =
+      startsAfterCompletedGroupStage && gameMode === 'random'
+        ? getRandomModeKnockoutAnchorTeamId(groupStandings) ?? teamId
+        : teamId;
+    const startJourney = startsAfterCompletedGroupStage
+      ? startKnockoutJourney({
+          selectedTeamId: startSelectedTeamId,
+          teamList: teams,
+          userPredictions: {},
+          ratings: teamRatingsById,
+          completedMatches,
+          groupStandings,
+        })
+      : null;
     const isTerminalPhase =
       state.tournamentPhase === 'champion' ||
       state.tournamentPhase === 'eliminated' ||
@@ -145,15 +163,16 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
 
       set({
         ...initialState,
-        selectedTeamId: teamId,
+        selectedTeamId: startSelectedTeamId,
         gameMode,
         activeSimulationId: createSimulationId(),
         completedMatches,
-        pendingUserMatch: getNextUserMatch(teamId, teams, completedMatches),
+        pendingUserMatch: getNextUserMatch(startSelectedTeamId, teams, completedMatches),
         groupStandings,
         tournamentState: preserveTournamentState
           ? { ...state.tournamentState!, userTeamId: teamId }
           : null,
+        ...(startJourney ? applyJourneyState(startJourney) : {}),
       });
       useAiMatchScoresStore.getState().reset();
       return;

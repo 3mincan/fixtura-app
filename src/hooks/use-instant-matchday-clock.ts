@@ -5,7 +5,7 @@ import type { Match, PeriodScore, UserMatchPrediction } from '@/types/match';
 import type { Standing } from '@/types/standing';
 import { getOfficialFixtureResult, worldCupGroupFixtures } from '@/data/worldcup-fixtures';
 import { teamRatingsById } from '@/data/team-ratings';
-import { simulateFixture } from '@/simulation/play-matchday';
+import { getDefaultMatchdaySimulationSeed, simulateFixture } from '@/simulation/play-matchday';
 import { useAiMatchScoresStore } from '@/store/ai-match-scores-store';
 import {
   advanceMatchdayClock,
@@ -42,7 +42,6 @@ type UseInstantMatchdayClockInput = {
   language: AppLanguage;
   fixtures?: Match[];
   autoSimulateUserMatches?: boolean;
-  useGemini?: boolean;
 };
 
 function getInProgressFixtures(clock: Date, fixtures: Match[]): Match[] {
@@ -146,7 +145,10 @@ function getKnownFixtureScore(
     }
 
     if (autoSimulateUserMatches) {
-      const simulated = simulateFixture(fixture, teamRatingsById, `instant:${fixture.id}`);
+      const seed = fixture.round
+        ? getDefaultMatchdaySimulationSeed(fixture.round)
+        : `instant:${fixture.id}`;
+      const simulated = simulateFixture(fixture, teamRatingsById, seed);
 
       return simulated.result?.regulation ?? null;
     }
@@ -191,7 +193,6 @@ export function useInstantMatchdayClock({
   language,
   fixtures = worldCupGroupFixtures,
   autoSimulateUserMatches = false,
-  useGemini = true,
 }: UseInstantMatchdayClockInput) {
   const clockRef = useRef(matchdayClock);
 
@@ -386,7 +387,8 @@ export function useInstantMatchdayClock({
             completedMatches,
             groupStandings,
             language,
-            useGemini,
+            useGemini: false,
+            resolvePendingScores: true,
           });
 
           if (cancelled) {
@@ -469,6 +471,5 @@ export function useInstantMatchdayClock({
     userPredictions,
     userTeamId,
     autoSimulateUserMatches,
-    useGemini,
   ]);
 }

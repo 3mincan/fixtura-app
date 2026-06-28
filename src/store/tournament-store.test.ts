@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
 
+import { worldCupGroupFixtures } from '@/data/worldcup-fixtures';
+import { useOfficialResultsStore } from '@/store/official-results-store';
 import { useTournamentStore } from '@/store/tournament-store';
-import type { Match } from '@/types/match';
+import type { Match, PeriodScore } from '@/types/match';
 import type { TournamentState } from '@/types/tournament';
 
 function makeMatch(id: string, homeTeamId: string, awayTeamId: string): Match {
@@ -28,6 +30,28 @@ function makeTournamentState(userTeamId: string | null = null): TournamentState 
 
 function resetStore() {
   useTournamentStore.getState().resetTournamentProgress();
+  useOfficialResultsStore.getState().hydrateResults({}, null);
+}
+
+function hydrateCompleteOfficialResultsForTeam(
+  teamId: string,
+  outcome: 'win' | 'lose',
+) {
+  const results = Object.fromEntries(
+    worldCupGroupFixtures.map((fixture): [string, PeriodScore] => {
+      if (fixture.homeTeamId === teamId) {
+        return [fixture.id, outcome === 'win' ? { home: 3, away: 0 } : { home: 0, away: 3 }];
+      }
+
+      if (fixture.awayTeamId === teamId) {
+        return [fixture.id, outcome === 'win' ? { home: 0, away: 3 } : { home: 3, away: 0 }];
+      }
+
+      return [fixture.id, { home: 0, away: 0 }];
+    }),
+  );
+
+  useOfficialResultsStore.getState().hydrateResults(results, Date.now());
 }
 
 describe('useTournamentStore', () => {
@@ -150,6 +174,40 @@ describe('useTournamentStore', () => {
 
     assert.notEqual(knockoutState.tournamentPhase, 'group');
     assert.ok(knockoutState.roundOf32Fixtures.length > 0);
+  });
+
+  it('starts from today in knockout when complete official results qualify the team', () => {
+    hydrateCompleteOfficialResultsForTeam('mex', 'win');
+
+    useTournamentStore.getState().selectTeam('mex', {
+      startMode: 'today',
+      currentDate: new Date('2026-06-28T12:00:00'),
+    });
+
+    const state = useTournamentStore.getState();
+
+    assert.equal(state.completedMatches.length, worldCupGroupFixtures.length);
+    assert.equal(state.selectedTeamId, 'mex');
+    assert.equal(state.tournamentPhase, 'knockout');
+    assert.ok(state.pendingKnockoutFixture);
+    assert.equal(state.pendingUserMatch?.stage, 'round-of-32');
+  });
+
+  it('starts from today in not-qualified flow when complete official results eliminate the team', () => {
+    hydrateCompleteOfficialResultsForTeam('mex', 'lose');
+
+    useTournamentStore.getState().selectTeam('mex', {
+      startMode: 'today',
+      currentDate: new Date('2026-06-28T12:00:00'),
+    });
+
+    const state = useTournamentStore.getState();
+
+    assert.equal(state.completedMatches.length, worldCupGroupFixtures.length);
+    assert.equal(state.selectedTeamId, 'mex');
+    assert.equal(state.tournamentPhase, 'not-qualified');
+    assert.equal(state.pendingUserMatch, null);
+    assert.ok(state.championId);
   });
 
   it('does not show not-qualified state in random mode', () => {

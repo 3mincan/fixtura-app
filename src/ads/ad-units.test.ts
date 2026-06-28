@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import { resolveAdUnitId } from '@/ads/resolve-ad-unit-id';
 import { resolveProductionInterstitialUnitId } from '@/ads/resolve-interstitial-unit-id';
 import { ADMOB_IOS_INTERSTITIAL_UNIT_ID } from '@/config/admob';
 
@@ -30,6 +31,32 @@ describe('interstitial ad unit ids', () => {
         'ca-app-pub-8524608486958068/9876543210',
       ),
       'ca-app-pub-8524608486958068/9876543210',
+    );
+  });
+});
+
+describe('ad unit ids', () => {
+  it('uses test ad units when explicitly enabled', () => {
+    assert.equal(
+      resolveAdUnitId(
+        'ca-app-pub-8524608486958068/2653405458',
+        'ca-app-pub-8524608486958068/2653405458',
+        'test-banner',
+        true,
+      ),
+      'test-banner',
+    );
+  });
+
+  it('uses production ad units when test ads are disabled', () => {
+    assert.equal(
+      resolveAdUnitId(
+        undefined,
+        'ca-app-pub-8524608486958068/2653405458',
+        'test-banner',
+        false,
+      ),
+      'ca-app-pub-8524608486958068/2653405458',
     );
   });
 });

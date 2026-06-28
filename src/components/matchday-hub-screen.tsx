@@ -735,7 +735,6 @@ export function MatchdayHubScreen() {
     groupStandings,
     language,
     autoSimulateUserMatches: isRandomGame,
-    useGemini: aiEnabled,
   });
 
   const groupBracketView = useMemo(() => {

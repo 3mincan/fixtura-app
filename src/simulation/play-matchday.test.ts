@@ -2,11 +2,15 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { teams } from '@/data/teams';
+import { teamRatingsById } from '@/data/team-ratings';
+import { worldCupGroupFixtures } from '@/data/worldcup-fixtures';
 import {
   advanceThroughMatchdays,
+  getDefaultMatchdaySimulationSeed,
   isGroupStageComplete,
   playMatchday,
   previewMatchdayResults,
+  simulateFixture,
 } from '@/simulation/play-matchday';
 import { getUserGroupMatches } from '@/utils/user-matches';
 
@@ -24,6 +28,48 @@ describe('playMatchday', () => {
     assert.equal(preview.length, 2);
     assert.ok(preview.some((match) => match.id === 'group-A-mex-rsa'));
     assert.ok(preview.every((match) => match.result?.regulation));
+  });
+
+  it('previews random-mode user matches even when instant mode requires AI scores', () => {
+    const preview = previewMatchdayResults({
+      matchday: 'Matchday 8',
+      userTeamId: 'mex',
+      userPredictions: {},
+      completedMatches: [],
+      seed: 'matchday-progress:Matchday 8',
+      aiScores: {},
+      requireAiScores: true,
+      autoSimulateUserMatches: true,
+    });
+
+    const userMatch = preview.find((match) => match.id === 'group-A-mex-kor');
+
+    assert.ok(userMatch);
+    assert.ok(userMatch.result?.regulation);
+  });
+
+  it('uses the default matchday seed for random-mode user match previews', () => {
+    const preview = previewMatchdayResults({
+      matchday: 'Matchday 8',
+      userTeamId: 'mex',
+      userPredictions: {},
+      completedMatches: [],
+      seed: 'matchday-progress:Matchday 8',
+      autoSimulateUserMatches: true,
+    });
+    const fixture = worldCupGroupFixtures.find((match) => match.id === 'group-A-mex-kor');
+    const previewedMatch = preview.find((match) => match.id === 'group-A-mex-kor');
+
+    assert.ok(fixture);
+    assert.ok(previewedMatch);
+    assert.deepEqual(
+      previewedMatch.result?.regulation,
+      simulateFixture(
+        fixture,
+        teamRatingsById,
+        getDefaultMatchdaySimulationSeed('Matchday 8'),
+      ).result?.regulation,
+    );
   });
 
   it('plays user matches in random mode without manual predictions', () => {

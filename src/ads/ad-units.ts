@@ -12,26 +12,14 @@ import {
   ADMOB_IOS_BANNER_UNIT_ID,
   ADMOB_IOS_INTERSTITIAL_UNIT_ID,
 } from '@/config/admob';
+import { resolveAdUnitId, shouldUseTestAdUnits } from '@/ads/resolve-ad-unit-id';
 
 const TEST_BANNER = GOOGLE_TEST_BANNER_UNIT_ID;
 const TEST_INTERSTITIAL = GOOGLE_TEST_INTERSTITIAL_UNIT_ID;
 
-function resolveUnitId(
-  envUnitId: string | undefined,
-  productionUnitId: string,
-  testUnitId: string,
-): string {
-  if (__DEV__) {
-    return testUnitId;
-  }
-
-  const configuredUnitId = envUnitId && envUnitId.length > 0 ? envUnitId : productionUnitId;
-  return configuredUnitId.length > 0 ? configuredUnitId : testUnitId;
-}
-
 export function getBannerUnitId(): string {
   if (Platform.OS === 'ios') {
-    return resolveUnitId(
+    return resolveAdUnitId(
       process.env.EXPO_PUBLIC_ADMOB_IOS_BANNER_ID,
       ADMOB_IOS_BANNER_UNIT_ID,
       TEST_BANNER,
@@ -39,7 +27,7 @@ export function getBannerUnitId(): string {
   }
 
   if (Platform.OS === 'android') {
-    return resolveUnitId(
+    return resolveAdUnitId(
       process.env.EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID,
       ADMOB_ANDROID_BANNER_UNIT_ID,
       TEST_BANNER,
@@ -50,7 +38,7 @@ export function getBannerUnitId(): string {
 }
 
 export function getInterstitialUnitId(): string | null {
-  if (__DEV__) {
+  if (shouldUseTestAdUnits()) {
     return TEST_INTERSTITIAL;
   }
 
@@ -76,3 +64,4 @@ export function isInterstitialAdsConfigured(): boolean {
 }
 
 export { isAdsSupportedPlatform };
+export { resolveAdUnitId, shouldUseTestAdUnits };

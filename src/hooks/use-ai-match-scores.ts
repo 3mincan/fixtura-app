@@ -77,7 +77,7 @@ export function useAiMatchScores({
           const score = resolvedScores[fixture.id];
 
           if (score) {
-            useAiMatchScoresStore.getState().upsertScore(fixture.id, score);
+            useAiMatchScoresStore.getState().upsertScoreIfMissing(fixture.id, score);
           }
         }
       } finally {

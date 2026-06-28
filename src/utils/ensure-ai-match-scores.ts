@@ -15,6 +15,7 @@ type EnsureAiMatchScoresInput = {
   groupStandings: Record<string, Standing[]>;
   language: AppLanguage;
   useGemini?: boolean;
+  resolvePendingScores?: boolean;
 };
 
 export async function ensureAiMatchScoresForFixtures(
@@ -28,6 +29,7 @@ export async function ensureAiMatchScoresForFixtures(
     groupStandings,
     language,
     useGemini = true,
+    resolvePendingScores = false,
   } = input;
   const backendUserId = useAppStore.getState().backendUserId;
   const store = useAiMatchScoresStore.getState();
@@ -38,7 +40,7 @@ export async function ensureAiMatchScoresForFixtures(
       !hasOfficialFixtureResult(fixture.id) &&
       !matchInvolvesTeam(fixture, userTeamId) &&
       store.scores[fixture.id] === undefined &&
-      !store.pendingMatchIds.has(fixture.id),
+      (resolvePendingScores || !store.pendingMatchIds.has(fixture.id)),
   );
 
   if (fixturesToResolve.length === 0) {
@@ -64,7 +66,7 @@ export async function ensureAiMatchScoresForFixtures(
       const score = resolvedScores[fixture.id];
 
       if (score) {
-        useAiMatchScoresStore.getState().upsertScore(fixture.id, score);
+        useAiMatchScoresStore.getState().upsertScoreIfMissing(fixture.id, score);
       }
     }
   } finally {

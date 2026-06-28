@@ -12,13 +12,25 @@ export function AdBannerSlot({ placement }: AdBannerSlotProps) {
   );
 
   useEffect(() => {
+    let mounted = true;
+
     if (!canShowAds()) {
-      return;
+      return () => {
+        mounted = false;
+      };
     }
 
-    void import('@/components/ad-banner-native').then(({ AdBannerNative }) => {
-      setBannerComponent(() => AdBannerNative);
-    });
+    void import('@/components/ad-banner-native')
+      .then(({ AdBannerNative }) => {
+        if (mounted) {
+          setBannerComponent(() => AdBannerNative);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (!BannerComponent) {

@@ -11,20 +11,12 @@ export function isAdsSupportedPlatform(): boolean {
   return Platform.OS === 'ios' || Platform.OS === 'android';
 }
 
-export function isNativeAdsModuleLinked(): boolean {
-  return TurboModuleRegistry.get('RNGoogleMobileAdsModule') != null;
-}
-
-export function canShowAds(): boolean {
-  return isAdsSupportedPlatform() && isNativeAdsModuleLinked();
-}
-
 export function loadMobileAdsModule(): MobileAdsModule | null {
   if (cachedModule !== undefined) {
     return cachedModule;
   }
 
-  if (!isNativeAdsModuleLinked()) {
+  if (!isAdsSupportedPlatform()) {
     cachedModule = null;
     return null;
   }
@@ -36,4 +28,19 @@ export function loadMobileAdsModule(): MobileAdsModule | null {
   }
 
   return cachedModule;
+}
+
+export function isNativeAdsModuleLinked(): boolean {
+  if (!isAdsSupportedPlatform()) {
+    return false;
+  }
+
+  return (
+    TurboModuleRegistry.get('RNGoogleMobileAdsModule') != null ||
+    loadMobileAdsModule() != null
+  );
+}
+
+export function canShowAds(): boolean {
+  return loadMobileAdsModule() != null;
 }

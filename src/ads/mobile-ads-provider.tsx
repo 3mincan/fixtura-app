@@ -2,43 +2,54 @@ import { useEffect } from 'react';
 
 import { resolveAdIntensity, type AdGate } from '@/ads/ad-policy';
 import { preloadInterstitial, showInterstitialIfAllowed } from '@/ads/interstitial-manager';
-import { canShowAds, loadMobileAdsModule } from '@/ads/native-ads';
+import { loadMobileAdsModule } from '@/ads/native-ads';
 import { useAppStore } from '@/store/app-store';
 
 export function MobileAdsProvider() {
   useEffect(() => {
-    if (!canShowAds()) {
+    const mobileAdsModule = loadMobileAdsModule();
+
+    if (!mobileAdsModule) {
       return;
     }
 
+    const ads = mobileAdsModule;
     let cancelled = false;
+    let started = false;
 
-    async function bootstrapMobileAds() {
-      const mobileAdsModule = loadMobileAdsModule();
-      if (!mobileAdsModule) {
+    async function startGoogleMobileAdsSDK() {
+      if (started || cancelled) {
         return;
       }
 
       try {
-        await mobileAdsModule.AdsConsent.gatherConsent();
+        const { canRequestAds } = await ads.AdsConsent.getConsentInfo();
+
+        if (!canRequestAds) {
+          return;
+        }
       } catch {
-        // Consent UI failures should not block gameplay.
+        // If consent info is unavailable, still try to initialize with non-personalized requests.
       }
 
-      if (cancelled) {
+      if (started || cancelled) {
         return;
       }
 
-      const { canRequestAds } = await mobileAdsModule.AdsConsent.getConsentInfo();
-      if (!canRequestAds) {
-        return;
-      }
+      started = true;
 
-      await mobileAdsModule.default().initialize();
-      preloadInterstitial();
+      try {
+        await ads.default().initialize();
+        preloadInterstitial();
+      } catch {
+        started = false;
+      }
     }
 
-    void bootstrapMobileAds();
+    void startGoogleMobileAdsSDK();
+    void ads.AdsConsent.gatherConsent()
+      .then(startGoogleMobileAdsSDK)
+      .catch(startGoogleMobileAdsSDK);
 
     return () => {
       cancelled = true;

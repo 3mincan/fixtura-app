@@ -29,6 +29,13 @@ export type PlayMatchdayOutput = {
   playedMatchIds: string[];
 };
 
+export function getDefaultMatchdaySimulationSeed(
+  matchday: string,
+  seedPrefix = 'matchday-progress',
+): string {
+  return `${seedPrefix}:${matchday}:${matchday}`;
+}
+
 export function simulateFixture(
   fixture: Match,
   ratings: Record<string, TeamRating>,
@@ -260,7 +267,7 @@ export function previewMatchdayResults(input: {
         ratings,
         `${seed}:${matchday}`,
         aiScores,
-        requireAiScores,
+        false,
       );
 
       return simulated ? [simulated] : [];

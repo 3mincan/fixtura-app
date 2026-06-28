@@ -6,6 +6,7 @@ type AiMatchScoresState = {
   scores: Record<string, PeriodScore>;
   pendingMatchIds: Set<string>;
   upsertScore: (matchId: string, score: PeriodScore) => void;
+  upsertScoreIfMissing: (matchId: string, score: PeriodScore) => void;
   markPending: (matchId: string) => void;
   clearPending: (matchId: string) => void;
   reset: () => void;
@@ -21,6 +22,20 @@ export const useAiMatchScoresStore = create<AiMatchScoresState>((set) => ({
         [matchId]: score,
       },
     }));
+  },
+  upsertScoreIfMissing: (matchId, score) => {
+    set((state) => {
+      if (state.scores[matchId] !== undefined) {
+        return {};
+      }
+
+      return {
+        scores: {
+          ...state.scores,
+          [matchId]: score,
+        },
+      };
+    });
   },
   markPending: (matchId) => {
     set((state) => {
