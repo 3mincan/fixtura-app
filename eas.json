@@ -20,9 +20,6 @@
       "autoIncrement": true,
       "env": {
         "APP_VARIANT": "production"
-      },
-      "install": {
-        "devDependencies": false
       }
     },
     "production": {
@@ -32,9 +29,6 @@
       "autoIncrement": true,
       "env": {
         "APP_VARIANT": "production"
-      },
-      "install": {
-        "devDependencies": false
       }
     }
   },

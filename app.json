@@ -60,6 +60,21 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "appVariant": "development",
+      "backendBaseUrl": "https://api.fixtura.xyz",
+      "gtmContainerId": "GTM-K8KV7BCB",
+      "router": {
+        "headers": {
+          "Cross-Origin-Embedder-Policy": "credentialless",
+          "Cross-Origin-Opener-Policy": "same-origin"
+        }
+      },
+      "eas": {
+        "projectId": "67eacac1-1f89-4e08-b5e6-8a1fd8e0c971"
+      }
+    },
+    "owner": "edemirkaya"
   }
 }
