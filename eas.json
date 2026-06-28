@@ -45,7 +45,9 @@
         "releaseStatus": "completed"
       },
       "ios": {
-        "metadataPath": "./store.config.json"
+        "metadataPath": "./store.config.json",
+        "ascAppId": "6785253879",
+        "appleTeamId": "QFY9689V27"
       }
     }
   }
