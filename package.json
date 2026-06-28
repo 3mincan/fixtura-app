@@ -46,6 +46,7 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~56.0.4",
+    "eas-cli": "^20.4.0",
     "expo-dev-client": "~56.0.20",
     "typescript": "~6.0.3"
   },
@@ -61,6 +62,9 @@
     "ios:verify-native": "node scripts/verify-ios-native-sync.mjs",
     "ios:verify-production": "APP_VARIANT=production node scripts/verify-ios-production-native.mjs",
     "eas:sync-release": "node scripts/materialize-eas-release.mjs",
+    "eas:build:ios": "eas build --platform ios --profile production",
+    "eas:build:ios:submit": "eas build --platform ios --profile production --auto-submit",
+    "eas:submit:ios": "eas submit --platform ios --profile production --latest",
     "eas-build-post-install": "if [ \"$APP_VARIANT\" = \"production\" ] && [ -d ios ]; then node scripts/strip-ios-dev-client-artifacts.mjs; fi && node scripts/materialize-eas-release.mjs",
     "ios:clean": "rm -rf ios/build && rm -rf ~/Library/Developer/Xcode/DerivedData/Fixtura-* && cd ios && pod install",
     "reset-project": "node ./scripts/reset-project.js",
