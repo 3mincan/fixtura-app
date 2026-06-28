@@ -1,4 +1,9 @@
-export { getBannerUnitId, getInterstitialUnitId, isAdsSupportedPlatform } from '@/ads/ad-units';
+export {
+  getBannerUnitId,
+  getInterstitialUnitId,
+  isAdsSupportedPlatform,
+  isInterstitialAdsConfigured,
+} from '@/ads/ad-units';
 export {
   resolveAdIntensity,
   shouldShowHomeBanner,

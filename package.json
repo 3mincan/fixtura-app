@@ -14,7 +14,6 @@
     "expo-asset": "~56.0.17",
     "expo-audio": "~56.0.12",
     "expo-constants": "~56.0.18",
-    "expo-dev-client": "~56.0.20",
     "expo-device": "~56.0.4",
     "expo-font": "~56.0.7",
     "expo-glass-effect": "~56.0.4",
@@ -45,6 +44,7 @@
   "devDependencies": {
     "@types/node": "^25.9.2",
     "@types/react": "~19.2.2",
+    "expo-dev-client": "~56.0.20",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -53,13 +53,19 @@
     "start:device": "NODE_OPTIONS=--dns-result-order=ipv4first expo start --dev-client --lan",
     "start:metro": "NODE_OPTIONS=--dns-result-order=ipv4first expo start --localhost",
     "kill:metro": "lsof -ti:8081 | xargs kill -9 2>/dev/null || true",
+    "ios:sync-native": "APP_VARIANT=development expo prebuild --platform ios --no-install && node scripts/sync-ios-privacy-info.mjs",
+    "ios:sync-native:production": "APP_VARIANT=production expo prebuild --platform ios --no-install && node scripts/sync-ios-privacy-info.mjs && rm -rf ios/Pods ios/Podfile.lock && APP_VARIANT=production npx pod-install && APP_VARIANT=production node scripts/strip-ios-dev-client-artifacts.mjs",
+    "ios:sync-privacy-info": "node scripts/sync-ios-privacy-info.mjs",
+    "ios:verify-native": "node scripts/verify-ios-native-sync.mjs",
+    "ios:verify-production": "APP_VARIANT=production node scripts/verify-ios-production-native.mjs",
+    "eas-build-post-install": "if [ \"$APP_VARIANT\" = \"production\" ] && [ -d ios ]; then node scripts/strip-ios-dev-client-artifacts.mjs; fi",
     "ios:clean": "rm -rf ios/build && rm -rf ~/Library/Developer/Xcode/DerivedData/Fixtura-* && cd ios && pod install",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "NODE_OPTIONS=--dns-result-order=ipv4first expo start --ios --localhost",
-    "ios:dev": "expo run:ios",
+    "ios:dev": "APP_VARIANT=development expo run:ios",
     "ios:device": "expo run:ios --device --no-bundler",
-    "ios:device:release": "expo run:ios --device --configuration Release --no-bundler",
+    "ios:device:release": "APP_VARIANT=production expo run:ios --device --configuration Release --no-bundler",
     "dev:ios:device": "bash scripts/dev-ios-device.sh",
     "ios:install": "bash scripts/ios-install-device.sh",
     "web": "expo start --web",
@@ -71,5 +77,9 @@
     "splash:lottie:normalize": "node scripts/normalize-splash-lottie.mjs",
     "icons:build": "node scripts/build-app-icons.mjs"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "uuid": "^11.1.0",
+    "js-yaml": "^4.1.2"
+  }
 }

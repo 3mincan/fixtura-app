@@ -15,10 +15,19 @@ const BACKEND_BASE_URL =
   process.env.EXPO_PUBLIC_BACKEND_BASE_URL ?? 'https://api.fixtura.xyz';
 const GTM_CONTAINER_ID =
   process.env.EXPO_PUBLIC_GTM_CONTAINER_ID ?? 'GTM-K8KV7BCB';
+const APP_VARIANT = process.env.APP_VARIANT ?? 'development';
+const IS_DEV_CLIENT_ENABLED = APP_VARIANT === 'development';
 
 const appExpoConfig = appJson.expo as ExpoConfigWithExtra;
 const appPlugins = (appExpoConfig.plugins ?? []) as NonNullable<ExpoConfig['plugins']>;
 const appIos = appExpoConfig.ios ?? {};
+const devClientPlugins = IS_DEV_CLIENT_ENABLED
+  ? (['expo-dev-client', './plugins/with-strip-dev-client-release.js'] as const)
+  : ([] as const);
+const productionCleanupPlugins = IS_DEV_CLIENT_ENABLED
+  ? ([] as const)
+  : (['./plugins/with-production-ios-cleanup.js'] as const);
+const sharedNativePlugins = ['./plugins/with-app-variant-podfile.js'] as const;
 
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ...config,
@@ -30,8 +39,16 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   plugins: [
     ...appPlugins,
     'expo-asset',
-    'expo-dev-client',
-    'expo-audio',
+    ...devClientPlugins,
+    ...sharedNativePlugins,
+    [
+      'expo-audio',
+      {
+        microphonePermission: false,
+        recordAudioAndroid: false,
+        enableBackgroundPlayback: false,
+      },
+    ],
     'expo-font',
     'expo-image',
     'expo-localization',
@@ -44,10 +61,13 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
         delayAppMeasurementInit: true,
       },
     ],
+    ...productionCleanupPlugins,
+    './plugins/with-playback-only-audio-permissions.js',
   ],
   extra: {
     ...config.extra,
     ...appExpoConfig.extra,
+    appVariant: APP_VARIANT,
     backendBaseUrl: BACKEND_BASE_URL,
     gtmContainerId: GTM_CONTAINER_ID,
   },

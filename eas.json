@@ -6,14 +6,29 @@
     "development": {
       "node": "20.19.4",
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "APP_VARIANT": "development"
+      }
     },
     "preview": {
       "node": "20.19.4",
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "APP_VARIANT": "production"
+      },
+      "install": {
+        "devDependencies": false
+      }
     },
     "production": {
-      "node": "20.19.4"
+      "node": "20.19.4",
+      "env": {
+        "APP_VARIANT": "production"
+      },
+      "install": {
+        "devDependencies": false
+      }
     }
   },
   "submit": {

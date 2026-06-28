@@ -39,5 +39,7 @@ yarn-error.*
 example
 
 # generated native folders
-/ios
+/ios/**
+!/ios/Fixtura/
+!/ios/Fixtura/PrivacyInfo.xcprivacy
 /android

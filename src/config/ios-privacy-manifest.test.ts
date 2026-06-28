@@ -1,8 +1,17 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 
 import iosPrivacyManifest from '../../ios-privacy-manifest.json';
+
+const require = createRequire(import.meta.url);
+const { parse: parsePlist } = require('@expo/plist').default;
+
+const trackedPrivacyInfoPath = new URL(
+  '../../store/ios/PrivacyInfo.xcprivacy',
+  import.meta.url,
+);
 
 describe('ios privacy manifest', () => {
   it('declares no tracking', () => {
@@ -32,5 +41,29 @@ describe('ios privacy manifest', () => {
 
     assert.equal(checklist.tracking.usesTracking, iosPrivacyManifest.NSPrivacyTracking);
     assert.equal(checklist.appStoreConnect.dataCollection, 'Yes, we collect data from this app');
+  });
+
+  it('matches committed PrivacyInfo.xcprivacy', () => {
+    assert.ok(
+      existsSync(trackedPrivacyInfoPath),
+      'Run npm run ios:sync-privacy-info to generate store/ios/PrivacyInfo.xcprivacy',
+    );
+
+    const privacyInfo = parsePlist(readFileSync(trackedPrivacyInfoPath, 'utf8'));
+    const collectedTypes =
+      privacyInfo.NSPrivacyCollectedDataTypes?.map(
+        (entry) => entry.NSPrivacyCollectedDataType,
+      ) ?? [];
+
+    assert.ok(
+      collectedTypes.length > 0,
+      'Committed PrivacyInfo.xcprivacy must declare collected data types',
+    );
+
+    for (const entry of iosPrivacyManifest.NSPrivacyCollectedDataTypes) {
+      assert.ok(collectedTypes.includes(entry.NSPrivacyCollectedDataType));
+    }
+
+    assert.equal(privacyInfo.NSPrivacyTracking, iosPrivacyManifest.NSPrivacyTracking);
   });
 });

@@ -4,7 +4,7 @@ import {
   type AdGate,
   type AdIntensity,
 } from '@/ads/ad-policy';
-import { getInterstitialUnitId } from '@/ads/ad-units';
+import { getInterstitialUnitId, isInterstitialAdsConfigured } from '@/ads/ad-units';
 import { canShowAds, loadMobileAdsModule } from '@/ads/native-ads';
 
 type InterstitialAdInstance = ReturnType<
@@ -22,12 +22,21 @@ class InterstitialManager {
       return this.ad;
     }
 
+    if (!isInterstitialAdsConfigured()) {
+      return null;
+    }
+
+    const unitId = getInterstitialUnitId();
+    if (!unitId) {
+      return null;
+    }
+
     const mobileAds = loadMobileAdsModule();
     if (!mobileAds) {
       return null;
     }
 
-    this.ad = mobileAds.InterstitialAd.createForAdRequest(getInterstitialUnitId(), {
+    this.ad = mobileAds.InterstitialAd.createForAdRequest(unitId, {
       requestNonPersonalizedAdsOnly: true,
     });
 
@@ -49,7 +58,7 @@ class InterstitialManager {
   }
 
   preload(): void {
-    if (!canShowAds()) {
+    if (!canShowAds() || !isInterstitialAdsConfigured()) {
       return;
     }
 

@@ -47,7 +47,9 @@ function GameAudioProviderInner({ children }: GameAudioProviderProps) {
 
   useEffect(() => {
     void setAudioModeAsync({
+      allowsRecording: false,
       playsInSilentMode: true,
+      shouldPlayInBackground: false,
     });
   }, []);
 

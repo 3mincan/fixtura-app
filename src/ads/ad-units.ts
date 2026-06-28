@@ -5,6 +5,7 @@ import {
   GOOGLE_TEST_INTERSTITIAL_UNIT_ID,
   isAdsSupportedPlatform,
 } from '@/ads/native-ads';
+import { resolveProductionInterstitialUnitId } from '@/ads/resolve-interstitial-unit-id';
 import {
   ADMOB_ANDROID_BANNER_UNIT_ID,
   ADMOB_ANDROID_INTERSTITIAL_UNIT_ID,
@@ -48,24 +49,30 @@ export function getBannerUnitId(): string {
   return TEST_BANNER;
 }
 
-export function getInterstitialUnitId(): string {
+export function getInterstitialUnitId(): string | null {
+  if (__DEV__) {
+    return TEST_INTERSTITIAL;
+  }
+
   if (Platform.OS === 'ios') {
-    return resolveUnitId(
+    return resolveProductionInterstitialUnitId(
       process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_ID,
       ADMOB_IOS_INTERSTITIAL_UNIT_ID,
-      TEST_INTERSTITIAL,
     );
   }
 
   if (Platform.OS === 'android') {
-    return resolveUnitId(
+    return resolveProductionInterstitialUnitId(
       process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_ID,
       ADMOB_ANDROID_INTERSTITIAL_UNIT_ID,
-      TEST_INTERSTITIAL,
     );
   }
 
-  return TEST_INTERSTITIAL;
+  return null;
+}
+
+export function isInterstitialAdsConfigured(): boolean {
+  return getInterstitialUnitId() != null;
 }
 
 export { isAdsSupportedPlatform };
