@@ -1,0 +1,10 @@
+{
+  "ios": {
+    "ascAppId": "",
+    "appleTeamId": ""
+  },
+  "android": {
+    "track": "production",
+    "releaseStatus": "completed"
+  }
+}

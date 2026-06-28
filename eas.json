@@ -1,12 +1,14 @@
 {
   "cli": {
-    "version": ">=16.0.0"
+    "version": ">=16.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "node": "20.19.4",
       "developmentClient": true,
       "distribution": "internal",
+      "environment": "development",
       "env": {
         "APP_VARIANT": "development"
       }
@@ -14,6 +16,8 @@
     "preview": {
       "node": "20.19.4",
       "distribution": "internal",
+      "environment": "preview",
+      "autoIncrement": true,
       "env": {
         "APP_VARIANT": "production"
       },
@@ -23,6 +27,9 @@
     },
     "production": {
       "node": "20.19.4",
+      "distribution": "store",
+      "environment": "production",
+      "autoIncrement": true,
       "env": {
         "APP_VARIANT": "production"
       },
@@ -33,6 +40,10 @@
   },
   "submit": {
     "production": {
+      "android": {
+        "track": "production",
+        "releaseStatus": "completed"
+      },
       "ios": {
         "metadataPath": "./store.config.json"
       }
