@@ -196,7 +196,11 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
       state.tournamentPhase === 'champion' ||
       state.tournamentPhase === 'eliminated' ||
       state.tournamentPhase === 'not-qualified';
-    const startsNewTournament = state.selectedTeamId !== teamId || isTerminalPhase;
+    const startsNewTournament =
+      options?.startMode !== undefined ||
+      (options?.gameMode !== undefined && options.gameMode !== state.gameMode) ||
+      state.selectedTeamId !== teamId ||
+      isTerminalPhase;
 
     if (startsNewTournament) {
       const preserveTournamentState =

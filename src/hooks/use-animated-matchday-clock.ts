@@ -25,6 +25,42 @@ type AnimatedMatchdayClockOptions = {
   autoSimulateUserMatches?: boolean;
 };
 
+export function shouldPauseForPendingTimelinePrediction(input: {
+  pendingUserMatch: Match | null;
+  clock: Date | null;
+  userPredictions: Record<string, UserMatchPrediction>;
+  autoSimulateUserMatches: boolean;
+}): boolean {
+  if (input.autoSimulateUserMatches) {
+    return false;
+  }
+
+  return isPendingUserMatchAwaitingPrediction(
+    input.pendingUserMatch,
+    input.clock,
+    input.userPredictions,
+  );
+}
+
+export function capClockAtPendingTimelinePrediction(input: {
+  currentClock: Date;
+  proposedClock: Date;
+  pendingUserMatch: Match | null;
+  userPredictions: Record<string, UserMatchPrediction>;
+  autoSimulateUserMatches: boolean;
+}): Date {
+  if (input.autoSimulateUserMatches) {
+    return input.proposedClock;
+  }
+
+  return capClockAtPendingUserMatchKickoff(
+    input.currentClock,
+    input.proposedClock,
+    input.pendingUserMatch,
+    input.userPredictions,
+  );
+}
+
 export function useAnimatedMatchdayClock(
   running: boolean,
   speed: SimulationSpeed,
@@ -94,11 +130,12 @@ export function useAnimatedMatchdayClock(
         const awaitingKnockout =
           pendingUserMatch &&
           currentClock &&
-          isPendingUserMatchAwaitingPrediction(
+          shouldPauseForPendingTimelinePrediction({
             pendingUserMatch,
-            currentClock,
+            clock: currentClock,
             userPredictions,
-          );
+            autoSimulateUserMatches,
+          });
 
         if (awaitingGroup || awaitingKnockout) {
           const focusMatch = awaitingGroup
@@ -130,12 +167,13 @@ export function useAnimatedMatchdayClock(
                 );
               }
 
-              next = capClockAtPendingUserMatchKickoff(
-                current,
-                next,
+              next = capClockAtPendingTimelinePrediction({
+                currentClock: current,
+                proposedClock: next,
                 pendingUserMatch,
                 userPredictions,
-              );
+                autoSimulateUserMatches,
+              });
 
               clockRef.current = next;
 
@@ -173,12 +211,13 @@ export function useAnimatedMatchdayClock(
             );
           }
 
-          next = capClockAtPendingUserMatchKickoff(
-            current,
-            next,
+          next = capClockAtPendingTimelinePrediction({
+            currentClock: current,
+            proposedClock: next,
             pendingUserMatch,
             userPredictions,
-          );
+            autoSimulateUserMatches,
+          });
 
           clockRef.current = next;
 

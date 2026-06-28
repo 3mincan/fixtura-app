@@ -314,6 +314,27 @@ describe('useTournamentStore', () => {
     assert.ok(Object.keys(state.groupStandings).length > 0);
   });
 
+  it('starts a fresh today simulation even when the same team is already active', () => {
+    useTournamentStore.getState().selectTeam('mex');
+
+    const previousSimulationId = useTournamentStore.getState().activeSimulationId;
+    const pendingMatch = useTournamentStore.getState().pendingUserMatch!;
+
+    useTournamentStore.getState().saveUserPrediction(pendingMatch, 2, 1);
+
+    useTournamentStore.getState().selectTeam('mex', {
+      startMode: 'today',
+      currentDate: new Date('2026-06-28T12:00:00'),
+    });
+
+    const state = useTournamentStore.getState();
+
+    assert.notEqual(state.activeSimulationId, previousSimulationId);
+    assert.deepEqual(state.userPredictions, {});
+    assert.equal(state.completedMatches.length, worldCupGroupFixtures.length);
+    assert.notEqual(state.tournamentPhase, 'group');
+  });
+
   it('starts random mode from today after the group calendar when official results are partial', () => {
     useTournamentStore.getState().selectTeam('mex', {
       gameMode: 'random',
