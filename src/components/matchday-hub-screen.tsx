@@ -257,7 +257,30 @@ export function MatchdayHubScreen() {
   const groupSummaryTriggeredRef = useRef(false);
   const autoKnockoutMatchIdRef = useRef<string | null>(null);
   const boardEntriesRef = useRef<MatchdayBoardEntry[]>([]);
+  const activeSimulationIdRef = useRef<string | null | undefined>(undefined);
   const [matchListHeight, setMatchListHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    if (activeSimulationIdRef.current === activeSimulationId) {
+      return;
+    }
+
+    activeSimulationIdRef.current = activeSimulationId;
+    groupSummaryTriggeredRef.current = false;
+    autoKnockoutMatchIdRef.current = null;
+    pinnedLiveMatchIdRef.current = null;
+    pinnedLiveIndexRef.current = null;
+    boardEntriesRef.current = [];
+    userIsScrollingRef.current = false;
+    scrollOffsetRef.current = 0;
+    setMatchdayClock(null);
+    setRoundSummaryGate(null);
+    setPendingKnockoutTimelineRounds([]);
+    setKnockoutTimeline(null);
+    setKnockoutSpectatorMode(false);
+    setShowEliminationChampion(false);
+    setAutoRevealAdPending(false);
+  }, [activeSimulationId]);
 
   const nextUserGroupMatch = useMemo(() => {
     if (!selectedTeamId || tournamentPhase !== 'group') {

@@ -2,10 +2,19 @@ import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
 
 import { worldCupGroupFixtures, worldCupKnockoutFixtures } from '@/data/worldcup-fixtures';
+import { simulateRandomKnockoutResult } from '@/simulation/simulate-random-knockout-result';
 import { useOfficialResultsStore } from '@/store/official-results-store';
 import { useTournamentStore } from '@/store/tournament-store';
 import type { Match, PeriodScore } from '@/types/match';
 import type { TournamentState } from '@/types/tournament';
+import {
+  buildKnockoutTimelineStateFromRoundResult,
+  buildPendingKnockoutTimelineState,
+  fixturesFromRoundResult,
+} from '@/utils/knockout-timeline';
+import { buildTimelineBoard } from '@/utils/matchday-board';
+import { getTournamentClockStart, isMatchFinishedAtClock } from '@/utils/matchday-clock';
+import type { KnockoutRound } from '@/types/knockout';
 
 function makeMatch(id: string, homeTeamId: string, awayTeamId: string): Match {
   return {
@@ -62,6 +71,77 @@ function countGroupFixturesThroughDate(date: string): number {
   return worldCupGroupFixtures.filter(
     (fixture) => fixture.scheduledDate && fixture.scheduledDate <= date,
   ).length;
+}
+
+function isTimelineComplete(clock: Date, fixtures: Match[], resultMatches: Match[]): boolean {
+  const resultById = new Map(resultMatches.map((match) => [match.id, match]));
+
+  return fixtures.every((fixture) => {
+    const resultMatch = resultById.get(fixture.id);
+
+    if (!resultMatch?.result?.regulation) {
+      return false;
+    }
+
+    return isMatchFinishedAtClock(fixture, clock);
+  });
+}
+
+function buildPendingKnockoutTimelineBoardFromStore() {
+  const state = useTournamentStore.getState();
+
+  assert.equal(state.tournamentPhase, 'knockout');
+  assert.ok(state.selectedTeamId);
+  assert.ok(state.pendingKnockoutFixture);
+
+  const timeline = buildPendingKnockoutTimelineState({
+    round: state.pendingKnockoutFixture.round,
+    roundOf32Fixtures: state.roundOf32Fixtures,
+    knockoutRoundResults: state.knockoutRoundResults,
+    pendingKnockoutFixture: state.pendingKnockoutFixture,
+    selectedTeamId: state.selectedTeamId,
+    userPredictions: state.userPredictions,
+    seed: state.activeSimulationId ?? 'knockout-timeline',
+  });
+  const clock = getTournamentClockStart(timeline.fixtures);
+
+  assert.ok(clock);
+
+  const board = buildTimelineBoard({
+    userTeamId: state.selectedTeamId,
+    completedMatches: timeline.resultMatches,
+    clock,
+    clockPhaseActive: true,
+    fixtures: timeline.fixtures,
+  });
+
+  return { timeline, clock, board };
+}
+
+function buildCompletedKnockoutTimelineBoardFromStore(round: KnockoutRound) {
+  const state = useTournamentStore.getState();
+  const roundResult = state.knockoutRoundResults.find((result) => result.round === round);
+
+  assert.ok(state.selectedTeamId);
+  assert.ok(roundResult);
+
+  const timeline = buildKnockoutTimelineStateFromRoundResult(
+    roundResult,
+    fixturesFromRoundResult(roundResult),
+  );
+  const clock = getTournamentClockStart(timeline.fixtures);
+
+  assert.ok(clock);
+
+  const board = buildTimelineBoard({
+    userTeamId: state.selectedTeamId,
+    completedMatches: timeline.resultMatches,
+    clock,
+    clockPhaseActive: true,
+    fixtures: timeline.fixtures,
+  });
+
+  return { timeline, clock, board };
 }
 
 describe('useTournamentStore', () => {
@@ -248,6 +328,45 @@ describe('useTournamentStore', () => {
     assert.equal(state.tournamentPhase, 'knockout');
     assert.ok(state.roundOf32Fixtures.length > 0);
     assert.ok(state.pendingKnockoutFixture);
+  });
+
+  it('builds a visible knockout timeline when pick-team mode starts from today', () => {
+    useTournamentStore.getState().selectTeam('mex', {
+      startMode: 'today',
+      currentDate: new Date('2026-06-28T12:00:00'),
+    });
+
+    const { timeline, clock, board } = buildPendingKnockoutTimelineBoardFromStore();
+
+    assert.equal(timeline.round, 'round-of-32');
+    assert.equal(timeline.fixtures.length, 16);
+    assert.ok(board.length > 0);
+    assert.equal(isTimelineComplete(clock, timeline.fixtures, timeline.resultMatches), false);
+  });
+
+  it('builds a visible knockout timeline when random mode starts from today', () => {
+    useTournamentStore.getState().selectTeam('mex', {
+      gameMode: 'random',
+      startMode: 'today',
+      currentDate: new Date('2026-06-28T12:00:00'),
+    });
+
+    const initialState = useTournamentStore.getState();
+    const completedRound = initialState.pendingKnockoutFixture!.round;
+    const pendingMatch = initialState.pendingUserMatch!;
+
+    useTournamentStore
+      .getState()
+      .saveKnockoutPrediction(pendingMatch, simulateRandomKnockoutResult(pendingMatch));
+
+    const { timeline, clock, board } =
+      buildCompletedKnockoutTimelineBoardFromStore(completedRound);
+
+    assert.equal(timeline.round, completedRound);
+    assert.equal(timeline.fixtures.length, 16);
+    assert.equal(timeline.resultMatches.length, 16);
+    assert.ok(board.length > 0);
+    assert.equal(isTimelineComplete(clock, timeline.fixtures, timeline.resultMatches), false);
   });
 
   it('starts from today correctly on every group fixture date in pick-team mode', () => {
