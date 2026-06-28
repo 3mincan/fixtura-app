@@ -1,13 +1,12 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
 
-import { teams } from '@/data/teams';
 import { useTournamentStore } from '@/store/tournament-store';
 import {
   canAdvanceReveal,
   getCurrentRevealMatch,
 } from '@/utils/result-reveal';
-import { getUserGroupMatches, matchInvolvesTeam } from '@/utils/user-matches';
+import { matchInvolvesTeam } from '@/utils/user-matches';
 
 function resetStore() {
   useTournamentStore.getState().resetTournamentProgress();

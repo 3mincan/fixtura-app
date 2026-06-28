@@ -4,7 +4,7 @@ import { simulateGroup } from '@/simulation/simulate-group';
 import type { Match, UserMatchPrediction } from '@/types/match';
 import type { Team, TeamRating } from '@/types/team';
 import { selectPeriodScorePredictions } from '@/utils/match-predictions';
-import { getUserGroupMatches, matchInvolvesTeam } from '@/utils/user-matches';
+import { matchInvolvesTeam } from '@/utils/user-matches';
 
 const DEFAULT_RESULT_REVEAL_SEED = 'result-reveal';
 

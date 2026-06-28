@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { IosScreen } from '@/components/ui/ios-screen';
 import { useTranslation } from '@/hooks/use-translation';
-import { trackNewGameStarted, trackTeamSelected, trackTournamentStarted } from '@/services/analytics';
+import { trackTeamSelected, trackTournamentStarted } from '@/services/analytics';
 import { useTournamentStore, type TournamentStartMode } from '@/store/tournament-store';
 import { Layout } from '@/theme/tokens';
 import { pickRandomTeam } from '@/utils/pick-random-team';

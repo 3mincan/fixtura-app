@@ -55,7 +55,7 @@ function mapSourceScoreToPeriodScore(score: FixtureSourceScore): PeriodScore {
 }
 
 export function buildOfficialGroupFixtureResults(
-  sources: Array<FixtureSourceMatch & { group: string }>,
+  sources: (FixtureSourceMatch & { group: string })[],
 ): Record<string, PeriodScore> {
   const results: Record<string, PeriodScore> = {};
 

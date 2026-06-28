@@ -7,8 +7,7 @@ import { teamsById } from '@/data/teams';
 import { useTranslation } from '@/hooks/use-translation';
 import { useTheme } from '@/hooks/use-theme';
 import { Layout, Radii } from '@/theme/tokens';
-import type { Match } from '@/types/match';
-import type { MatchResult } from '@/types/match';
+import type { Match , MatchResult } from '@/types/match';
 import type { KnockoutPredictionPhase } from '@/utils/knockout-prediction';
 import { getPredictionValidationError } from '@/utils/prediction-validation';
 

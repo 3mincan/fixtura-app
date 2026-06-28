@@ -1,5 +1,5 @@
 import { getWorldCupGroupFixtures, hasOfficialFixtureResult } from '@/data/worldcup-fixtures';
-import type { Match, PeriodScore } from '@/types/match';
+import type { Match } from '@/types/match';
 import type { Team } from '@/types/team';
 
 export function matchInvolvesTeam(match: Match, teamId: string): boolean {

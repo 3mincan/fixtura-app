@@ -37,7 +37,6 @@ import {
   UPCOMING_WINDOW_MS,
 } from '@/utils/matchday-clock';
 import { getUserGroupMatches } from '@/utils/user-matches';
-import { teams } from '@/data/teams';
 import type { Match } from '@/types/match';
 
 const sampleMatch: Match = {

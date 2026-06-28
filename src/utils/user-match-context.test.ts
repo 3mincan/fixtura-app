@@ -3,7 +3,6 @@ import { describe, it } from 'node:test';
 
 import { teams } from '@/data/teams';
 import { translate } from '@/i18n/translations';
-import type { Match } from '@/types/match';
 import {
   formatUserMatchStageLabel,
   getOpponentPathSummary,

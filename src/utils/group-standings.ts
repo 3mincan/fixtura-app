@@ -11,7 +11,6 @@ import type { Standing } from '@/types/standing';
 import type { Team, TeamRating } from '@/types/team';
 import { selectPeriodScorePredictions } from '@/utils/match-predictions';
 import { mergeMatchdayResults } from '@/utils/matchday-board';
-import { getUserGroupMatches } from '@/utils/user-matches';
 
 const DEFAULT_GROUP_TABLE_SEED = 'group-table';
 

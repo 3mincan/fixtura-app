@@ -8,11 +8,9 @@ import {
   saveTournamentProgress,
   toPersistableState,
 } from '@/db/persistence';
-import { teams } from '@/data/teams';
 import { createTestDatabase } from '@/db/test-database';
 import type { DatabaseClient } from '@/db/types';
 import { useTournamentStore } from '@/store/tournament-store';
-import { getUserGroupMatches } from '@/utils/user-matches';
 
 function resetStore() {
   useTournamentStore.getState().resetTournamentProgress();

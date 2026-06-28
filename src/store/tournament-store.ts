@@ -9,7 +9,6 @@ import { buildRoundOf32FromFixtures } from '@/simulation/build-round-of-32-from-
 import type { KnockoutRoundResult } from '@/simulation/simulate-knockout-stage';
 import {
   advanceKnockoutJourney,
-  hasAllUserGroupPredictions,
   knockoutFixtureToMatch,
   startKnockoutJourney,
   type TournamentJourneyPhase,

@@ -56,7 +56,6 @@ import {
   isGroupTimelineComplete,
   isMatchFinishedAtClock,
   isPendingUserMatchAwaitingPrediction,
-  parseMatchKickoff,
 } from '@/utils/matchday-clock';
 import {
   buildTimelineBoard,
@@ -782,8 +781,10 @@ export function MatchdayHubScreen() {
     matchListHeight > 0 ? (matchListHeight - TIMELINE_CARD_HEIGHT) / 2 : 16,
   );
 
-  listTopPaddingRef.current = listTopPadding;
-  matchListHeightRef.current = matchListHeight;
+  useEffect(() => {
+    listTopPaddingRef.current = listTopPadding;
+    matchListHeightRef.current = matchListHeight;
+  }, [listTopPadding, matchListHeight]);
 
   useEffect(() => {
     pinnedLiveMatchIdRef.current = null;

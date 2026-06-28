@@ -9,7 +9,6 @@ import { KNOCKOUT_ROUNDS } from '@/types/knockout';
 import type { MatchResult, UserMatchPrediction } from '@/types/match';
 import type { Team, TeamRating } from '@/types/team';
 import { selectPeriodScorePredictions } from '@/utils/match-predictions';
-import { getUserGroupMatches } from '@/utils/user-matches';
 
 const DEFAULT_KNOCKOUT_BRACKET_SEED = 'knockout-bracket';
 

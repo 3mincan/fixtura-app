@@ -16,10 +16,10 @@ import type { Standing } from '@/types/standing';
 
 type TournamentRoundSummaryScreenProps = {
   roundLabel: string;
-  rounds: Array<{
+  rounds: {
     roundName: string;
     matches: KnockoutBracketMatchView[];
-  }>;
+  }[];
   userTeamAdvanced: boolean;
   showNextRoundButton: boolean;
   congratsMessage?: string;

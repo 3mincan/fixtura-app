@@ -1,7 +1,6 @@
 import { buildRoundOf32FromFixtures } from '@/simulation/build-round-of-32-from-fixtures';
-import { hasOfficialFixtureResult } from '@/data/worldcup-fixtures';
+import { hasOfficialFixtureResult , getWorldCupKnockoutFixtures } from '@/data/worldcup-fixtures';
 import { computeAllGroupStandings } from '@/simulation/compute-group-standings';
-import { getWorldCupKnockoutFixtures } from '@/data/worldcup-fixtures';
 import { continueKnockoutStage } from '@/simulation/continue-knockout-stage';
 import { simulateKnockoutRound } from '@/simulation/simulate-knockout-round';
 import { simulateKnockoutStage } from '@/simulation/simulate-knockout-stage';
@@ -193,7 +192,6 @@ export function startKnockoutJourney(input: TournamentJourneyInput): TournamentJ
   const {
     selectedTeamId,
     teamList,
-    userPredictions,
     ratings,
     seed = DEFAULT_JOURNEY_SEED,
   } = input;

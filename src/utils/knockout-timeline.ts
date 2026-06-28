@@ -3,8 +3,7 @@ import { teamRatingsById } from '@/data/team-ratings';
 import { buildKnockoutRoundForTimeline } from '@/simulation/simulate-knockout-round';
 import type { KnockoutRoundResult } from '@/simulation/simulate-knockout-stage';
 import type { KnockoutBracketMatch, KnockoutRound } from '@/types/knockout';
-import type { Match, PeriodScore } from '@/types/match';
-import type { MatchResult } from '@/types/match';
+import type { Match, PeriodScore , MatchResult } from '@/types/match';
 import type { TeamRating } from '@/types/team';
 
 export type KnockoutTimelineState = {

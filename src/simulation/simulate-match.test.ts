@@ -86,7 +86,6 @@ describe('simulateMatch', () => {
 
   it('rejects ratings that do not match team ids', () => {
     const homeRating = makeRating('home');
-    const awayRating = makeRating('away');
 
     assert.throws(
       () =>

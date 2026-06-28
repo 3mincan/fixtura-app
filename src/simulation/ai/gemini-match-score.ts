@@ -9,13 +9,13 @@ const GEMINI_MODEL = 'gemini-3.1-flash-lite';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 type GeminiGenerateContentResponse = {
-  candidates?: Array<{
+  candidates?: {
     content?: {
-      parts?: Array<{
+      parts?: {
         text?: string;
-      }>;
+      }[];
     };
-  }>;
+  }[];
   error?: {
     message?: string;
   };
@@ -134,7 +134,7 @@ function parseScoreValue(value: unknown): MatchAiScore {
 
 export function parseGeminiMatchScores(text: string): MatchAiBatchScore[] {
   const parsed = JSON.parse(extractJsonObject(text)) as {
-    scores?: Array<Partial<MatchAiBatchScore>>;
+    scores?: Partial<MatchAiBatchScore>[];
   };
 
   if (!Array.isArray(parsed.scores)) {

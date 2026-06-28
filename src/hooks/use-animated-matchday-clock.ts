@@ -1,4 +1,4 @@
-import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useMemo, useRef, type Dispatch, type SetStateAction } from 'react';
 
 import type { SimulationSpeed } from '@/types/app-settings';
 import {
@@ -38,7 +38,10 @@ export function useAnimatedMatchdayClock(
   const matchBatchDurationMs = options.matchBatchDurationMs;
   const userTeamId = options.userTeamId ?? null;
   const pendingUserMatch = options.pendingUserMatch ?? null;
-  const userPredictions = options.userPredictions ?? {};
+  const userPredictions = useMemo(
+    () => options.userPredictions ?? {},
+    [options.userPredictions],
+  );
   const autoSimulateUserMatches = options.autoSimulateUserMatches ?? false;
 
   useEffect(() => {

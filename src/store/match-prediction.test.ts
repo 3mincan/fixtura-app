@@ -3,7 +3,7 @@ import { afterEach, describe, it } from 'node:test';
 
 import { teams } from '@/data/teams';
 import { useTournamentStore } from '@/store/tournament-store';
-import { getNextUserMatch, getUserGroupMatches } from '@/utils/user-matches';
+import { getNextUserMatch } from '@/utils/user-matches';
 
 function resetStore() {
   useTournamentStore.getState().resetTournamentProgress();

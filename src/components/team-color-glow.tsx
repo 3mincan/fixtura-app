@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Radii } from '@/theme/tokens';
@@ -23,6 +23,14 @@ function getHalfGradientCss(teamColor: string, direction: 'home' | 'away'): stri
   return `linear-gradient(90deg, ${colors[0]} 0%, ${colors[1]} 50%, ${colors[2]} 100%)`;
 }
 
+type WebBackgroundImageStyle = Pick<CSSProperties, 'backgroundImage'>;
+
+function webBackgroundImageStyle(backgroundImage: string): ViewStyle {
+  const style: WebBackgroundImageStyle = { backgroundImage };
+
+  return style as ViewStyle;
+}
+
 function TeamHalfGlow({
   teamColor,
   direction,
@@ -39,7 +47,7 @@ function TeamHalfGlow({
         style={[
           styles.halfOverlay,
           direction === 'home' ? styles.leftHalf : styles.rightHalf,
-          { backgroundImage: getHalfGradientCss(teamColor, direction) },
+          webBackgroundImageStyle(getHalfGradientCss(teamColor, direction)),
         ]}
       />
     );

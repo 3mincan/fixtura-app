@@ -77,11 +77,11 @@ export async function createBackendSession(anonymousId: string): Promise<string 
 
 export async function recordBackendEventsBatch(input: {
   userId?: string | null;
-  events: Array<{
+  events: {
     name: string;
     payload?: Record<string, unknown>;
     clientCreatedAt?: number;
-  }>;
+  }[];
 }): Promise<void> {
   if (input.events.length === 0) {
     return;

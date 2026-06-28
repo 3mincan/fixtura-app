@@ -469,5 +469,6 @@ export function useInstantMatchdayClock({
     userPredictions,
     userTeamId,
     autoSimulateUserMatches,
+    useGemini,
   ]);
 }
