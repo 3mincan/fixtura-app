@@ -38,6 +38,12 @@ type WorldCup2026Response = {
   sourceUrl?: unknown;
 };
 
+export type WorldCup2026Data = {
+  data: FixtureSourceFile;
+  fetchedAt: number | null;
+  sourceUrl: string | null;
+};
+
 const REQUEST_TIMEOUT_MS = 12_000;
 
 export async function fetchRemoteConfig(): Promise<RemoteConfigResponse['config'] | null> {
@@ -169,7 +175,7 @@ export async function resolveBackendMatchScore(input: {
   return { home, away };
 }
 
-export async function fetchWorldCup2026Data(): Promise<FixtureSourceFile | null> {
+export async function fetchWorldCup2026Data(): Promise<WorldCup2026Data | null> {
   const response = await fetchWithTimeout('/worldcup/2026', {
     method: 'GET',
   });
@@ -184,7 +190,11 @@ export async function fetchWorldCup2026Data(): Promise<FixtureSourceFile | null>
     return null;
   }
 
-  return payload.data;
+  return {
+    data: payload.data,
+    fetchedAt: typeof payload.fetchedAt === 'number' ? payload.fetchedAt : null,
+    sourceUrl: typeof payload.sourceUrl === 'string' ? payload.sourceUrl : null,
+  };
 }
 
 async function fetchWithTimeout(path: string, init: RequestInit): Promise<Response> {

@@ -30,6 +30,25 @@ type TournamentPersistenceProviderProps = {
   children: ReactNode;
 };
 
+const STARTUP_RESULTS_SYNC_WAIT_MS = 2500;
+
+async function waitForStartupResultsSync(sync: Promise<void | null>) {
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    await Promise.race([
+      sync,
+      new Promise<null>((resolve) => {
+        timeoutHandle = setTimeout(() => resolve(null), STARTUP_RESULTS_SYNC_WAIT_MS);
+      }),
+    ]);
+  } finally {
+    if (timeoutHandle) {
+      clearTimeout(timeoutHandle);
+    }
+  }
+}
+
 async function syncTournamentCompletionFlag(db: DatabaseClient) {
   const tournamentPhase = useTournamentStore.getState().tournamentPhase;
 
@@ -61,12 +80,12 @@ async function syncOfficialResultsFromBackend() {
     return;
   }
 
-  const groupFixtures = source.matches.filter(
+  const groupFixtures = source.data.matches.filter(
     (match): match is FixtureSourceMatch & { group: string } => Boolean(match.group),
   );
   const results = buildOfficialGroupFixtureResults(groupFixtures);
 
-  useOfficialResultsStore.getState().hydrateResults(results);
+  useOfficialResultsStore.getState().hydrateResults(results, source.fetchedAt ?? Date.now());
 
   const completedMatches = useTournamentStore.getState().completedMatches;
 
@@ -88,7 +107,7 @@ export function TournamentPersistenceProvider({
 
     async function setup() {
       try {
-        void syncOfficialResultsFromBackend();
+        const officialResultsSync = syncOfficialResultsFromBackend().catch(() => null);
 
         await initializeDatabase(db);
 
@@ -105,6 +124,8 @@ export function TournamentPersistenceProvider({
         useAppStore.getState().hydrateSettings(settings);
 
         const result = await hydrateTournamentStore(db);
+
+        await waitForStartupResultsSync(officialResultsSync);
 
         if (result === 'failed') {
           trackRestoreFailure({ source: 'startup' });

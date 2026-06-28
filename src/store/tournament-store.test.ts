@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
 
-import { worldCupGroupFixtures } from '@/data/worldcup-fixtures';
+import { worldCupGroupFixtures, worldCupKnockoutFixtures } from '@/data/worldcup-fixtures';
 import { useOfficialResultsStore } from '@/store/official-results-store';
 import { useTournamentStore } from '@/store/tournament-store';
 import type { Match, PeriodScore } from '@/types/match';
@@ -52,6 +52,16 @@ function hydrateCompleteOfficialResultsForTeam(
   );
 
   useOfficialResultsStore.getState().hydrateResults(results, Date.now());
+}
+
+function getUniqueFixtureDates(fixtures: { scheduledDate?: string }[]): string[] {
+  return [...new Set(fixtures.map((fixture) => fixture.scheduledDate).filter(Boolean) as string[])];
+}
+
+function countGroupFixturesThroughDate(date: string): number {
+  return worldCupGroupFixtures.filter(
+    (fixture) => fixture.scheduledDate && fixture.scheduledDate <= date,
+  ).length;
 }
 
 describe('useTournamentStore', () => {
@@ -238,6 +248,87 @@ describe('useTournamentStore', () => {
     assert.equal(state.tournamentPhase, 'knockout');
     assert.ok(state.roundOf32Fixtures.length > 0);
     assert.ok(state.pendingKnockoutFixture);
+  });
+
+  it('starts from today correctly on every group fixture date in pick-team mode', () => {
+    for (const date of getUniqueFixtureDates(worldCupGroupFixtures)) {
+      resetStore();
+
+      useTournamentStore.getState().selectTeam('mex', {
+        startMode: 'today',
+        currentDate: new Date(`${date}T12:00:00`),
+      });
+
+      const state = useTournamentStore.getState();
+      const expectedCompletedMatches = countGroupFixturesThroughDate(date);
+
+      assert.equal(state.completedMatches.length, expectedCompletedMatches);
+      assert.equal(state.selectedTeamId, 'mex');
+      assert.ok(
+        state.completedMatches.every((match) => match.result?.regulation),
+        `expected all completed matches to include scores on ${date}`,
+      );
+    }
+  });
+
+  it('starts from today correctly on every group fixture date in random mode', () => {
+    for (const date of getUniqueFixtureDates(worldCupGroupFixtures)) {
+      resetStore();
+
+      useTournamentStore.getState().selectTeam('mex', {
+        gameMode: 'random',
+        startMode: 'today',
+        currentDate: new Date(`${date}T12:00:00`),
+      });
+
+      const state = useTournamentStore.getState();
+      const expectedCompletedMatches = countGroupFixturesThroughDate(date);
+
+      assert.equal(state.gameMode, 'random');
+      assert.equal(state.completedMatches.length, expectedCompletedMatches);
+      assert.ok(
+        state.completedMatches.every((match) => match.result?.regulation),
+        `expected all completed matches to include scores on ${date}`,
+      );
+    }
+  });
+
+  it('starts from today beyond groups on every knockout fixture date in pick-team mode', () => {
+    for (const date of getUniqueFixtureDates(worldCupKnockoutFixtures)) {
+      resetStore();
+
+      useTournamentStore.getState().selectTeam('mex', {
+        startMode: 'today',
+        currentDate: new Date(`${date}T12:00:00`),
+      });
+
+      const state = useTournamentStore.getState();
+
+      assert.equal(state.completedMatches.length, worldCupGroupFixtures.length);
+      assert.equal(state.selectedTeamId, 'mex');
+      assert.notEqual(state.tournamentPhase, 'group');
+      assert.ok(Object.keys(state.groupStandings).length > 0);
+    }
+  });
+
+  it('starts from today beyond groups on every knockout fixture date in random mode', () => {
+    for (const date of getUniqueFixtureDates(worldCupKnockoutFixtures)) {
+      resetStore();
+
+      useTournamentStore.getState().selectTeam('mex', {
+        gameMode: 'random',
+        startMode: 'today',
+        currentDate: new Date(`${date}T12:00:00`),
+      });
+
+      const state = useTournamentStore.getState();
+
+      assert.equal(state.gameMode, 'random');
+      assert.equal(state.completedMatches.length, worldCupGroupFixtures.length);
+      assert.equal(state.tournamentPhase, 'knockout');
+      assert.ok(state.roundOf32Fixtures.length > 0);
+      assert.ok(state.pendingKnockoutFixture);
+    }
   });
 
   it('does not show not-qualified state in random mode', () => {
