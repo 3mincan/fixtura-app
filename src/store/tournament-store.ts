@@ -3,7 +3,10 @@ import { create } from 'zustand';
 import { createSimulationId } from '@/db/simulation-id';
 import { teamRatingsById } from '@/data/team-ratings';
 import { teams } from '@/data/teams';
-import { getOfficialGroupMatchesThroughDate } from '@/data/worldcup-fixtures';
+import {
+  getOfficialFixtureResult,
+  worldCupGroupFixtures,
+} from '@/data/worldcup-fixtures';
 import { computeAllGroupStandings } from '@/simulation/compute-group-standings';
 import { buildRoundOf32FromFixtures } from '@/simulation/build-round-of-32-from-fixtures';
 import type { KnockoutRoundResult } from '@/simulation/simulate-knockout-stage';
@@ -14,7 +17,11 @@ import {
   type TournamentJourneyPhase,
 } from '@/simulation/tournament-journey';
 import type { KnockoutBracketMatch } from '@/types/knockout';
-import { advanceThroughMatchdays, isGroupStageComplete } from '@/simulation/play-matchday';
+import {
+  advanceThroughMatchdays,
+  isGroupStageComplete,
+  simulateFixture,
+} from '@/simulation/play-matchday';
 import { useAiMatchScoresStore } from '@/store/ai-match-scores-store';
 import type { Match, MatchResult, PeriodScore, UserMatchPrediction } from '@/types/match';
 import type { Standing } from '@/types/standing';
@@ -123,6 +130,40 @@ function getRandomModeKnockoutAnchorTeamId(
   return firstFixture?.homeTeamId ?? firstFixture?.awayTeamId ?? null;
 }
 
+function formatFixtureDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+function getCompletedGroupMatchesThroughDate(date: Date): Match[] {
+  const cutoffDate = formatFixtureDate(date);
+
+  return worldCupGroupFixtures.flatMap((fixture) => {
+    if (!fixture.scheduledDate || fixture.scheduledDate > cutoffDate) {
+      return [];
+    }
+
+    const officialResult = getOfficialFixtureResult(fixture.id);
+
+    if (officialResult) {
+      return [
+        {
+          ...fixture,
+          status: 'completed' as const,
+          result: {
+            regulation: officialResult,
+          },
+        },
+      ];
+    }
+
+    return [simulateFixture(fixture, teamRatingsById, `from-today:${cutoffDate}`)];
+  });
+}
+
 export const useTournamentStore = create<TournamentStore>((set, get) => ({
   ...initialState,
 
@@ -131,7 +172,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
     const gameMode = options?.gameMode ?? state.gameMode ?? 'predict';
     const completedMatches =
       options?.startMode === 'today'
-        ? getOfficialGroupMatchesThroughDate(options.currentDate ?? new Date())
+        ? getCompletedGroupMatchesThroughDate(options.currentDate ?? new Date())
         : [];
     const groupStandings =
       completedMatches.length > 0 ? computeAllGroupStandings(completedMatches) : {};

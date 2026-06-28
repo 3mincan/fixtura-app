@@ -210,6 +210,36 @@ describe('useTournamentStore', () => {
     assert.ok(state.championId);
   });
 
+  it('starts from today after the group calendar when official results are partial', () => {
+    useTournamentStore.getState().selectTeam('mex', {
+      startMode: 'today',
+      currentDate: new Date('2026-06-28T12:00:00'),
+    });
+
+    const state = useTournamentStore.getState();
+
+    assert.equal(state.completedMatches.length, worldCupGroupFixtures.length);
+    assert.equal(state.selectedTeamId, 'mex');
+    assert.notEqual(state.tournamentPhase, 'group');
+    assert.ok(Object.keys(state.groupStandings).length > 0);
+  });
+
+  it('starts random mode from today after the group calendar when official results are partial', () => {
+    useTournamentStore.getState().selectTeam('mex', {
+      gameMode: 'random',
+      startMode: 'today',
+      currentDate: new Date('2026-06-28T12:00:00'),
+    });
+
+    const state = useTournamentStore.getState();
+
+    assert.equal(state.gameMode, 'random');
+    assert.equal(state.completedMatches.length, worldCupGroupFixtures.length);
+    assert.equal(state.tournamentPhase, 'knockout');
+    assert.ok(state.roundOf32Fixtures.length > 0);
+    assert.ok(state.pendingKnockoutFixture);
+  });
+
   it('does not show not-qualified state in random mode', () => {
     useTournamentStore.getState().selectTeam('cze', { gameMode: 'random' });
 

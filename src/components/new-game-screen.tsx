@@ -105,7 +105,7 @@ export function NewGameScreen() {
                 From today
               </Text>
               <Text style={styles.startOptionDescription}>
-                Apply official results instantly and continue from now.
+                Apply current progress instantly and continue from now.
               </Text>
             </Pressable>
           </View>
