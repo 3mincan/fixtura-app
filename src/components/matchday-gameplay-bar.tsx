@@ -7,11 +7,13 @@ import { Layout } from '@/theme/tokens';
 
 type MatchdayGameplayBarProps = {
   autoReveal: boolean;
+  autoRevealPending?: boolean;
   onAutoRevealChange: (value: boolean) => void;
 };
 
 export function MatchdayGameplayBar({
   autoReveal,
+  autoRevealPending = false,
   onAutoRevealChange,
 }: MatchdayGameplayBarProps) {
   const theme = useTheme();
@@ -31,9 +33,10 @@ export function MatchdayGameplayBar({
       </View>
       <Switch
         value={autoReveal}
+        disabled={autoRevealPending}
         onValueChange={onAutoRevealChange}
         trackColor={{ false: theme.border, true: theme.accentMuted }}
-        thumbColor={autoReveal ? theme.accent : theme.textDim}
+        thumbColor={autoReveal || autoRevealPending ? theme.accent : theme.textDim}
       />
     </View>
   );

@@ -4,13 +4,16 @@ import {
   DEFAULT_APP_SETTINGS,
   type AppSettings,
 } from '@/types/app-settings';
+import type { RemoteConfig } from '@/types/remote-config';
 import { pickPersistableAppSettings } from '@/utils/pick-app-settings';
 import { normalizeSimulationSpeed } from '@/utils/normalize-simulation-speed';
 
 type AppStore = AppSettings & {
   isAppReady: boolean;
+  remoteConfig: RemoteConfig | null;
   hydrateSettings: (settings: Partial<AppSettings>) => void;
   updateSettings: (patch: Partial<AppSettings>) => AppSettings;
+  setRemoteConfig: (config: RemoteConfig | null) => void;
   setAppReady: (ready: boolean) => void;
   completeOnboarding: () => AppSettings;
   markTournamentCompleted: () => AppSettings;
@@ -20,6 +23,7 @@ type AppStore = AppSettings & {
 export const useAppStore = create<AppStore>((set, get) => ({
   ...DEFAULT_APP_SETTINGS,
   isAppReady: false,
+  remoteConfig: null,
 
   hydrateSettings: (settings) => {
     set({
@@ -43,6 +47,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
     return nextSettings;
   },
+
+  setRemoteConfig: (config) => set({ remoteConfig: config }),
 
   setAppReady: (ready) => set({ isAppReady: ready }),
 

@@ -1,8 +1,10 @@
 export {
   getBannerUnitId,
   getInterstitialUnitId,
+  getRewardedUnitId,
   isAdsSupportedPlatform,
   isInterstitialAdsConfigured,
+  isRewardedAdsConfigured,
 } from '@/ads/ad-units';
 export {
   resolveAdIntensity,
@@ -14,3 +16,8 @@ export {
 } from '@/ads/ad-policy';
 export { interstitialManager, showInterstitialIfAllowed } from '@/ads/interstitial-manager';
 export { maybeShowInterstitial, MobileAdsProvider, useAdIntensity } from '@/ads/mobile-ads-provider';
+export {
+  preloadRewardedAd,
+  rewardedAdManager,
+  showRewardedForAutoReveal,
+} from '@/ads/rewarded-manager';

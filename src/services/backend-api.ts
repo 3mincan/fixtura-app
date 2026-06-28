@@ -2,6 +2,7 @@ import { getBackendBaseUrl } from '@/config/backend-url';
 import type { FixtureSourceFile } from '@/data/worldcup-fixtures';
 import type { AppLanguage } from '@/types/app-settings';
 import type { Match, PeriodScore } from '@/types/match';
+import type { RemoteConfig } from '@/types/remote-config';
 import type { Standing } from '@/types/standing';
 
 type BackendScoreResponse = {
@@ -12,13 +13,7 @@ type BackendScoreResponse = {
 };
 
 type RemoteConfigResponse = {
-  config?: {
-    minSupportedAppVersion?: string;
-    maintenanceMode?: boolean;
-    aiProxyEnabled?: boolean;
-    adsEnabled?: boolean;
-    supportedTournaments?: string[];
-  };
+  config?: RemoteConfig;
 };
 
 type BackendSessionResponse = {

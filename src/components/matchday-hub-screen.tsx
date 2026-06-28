@@ -13,6 +13,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 
 import { shouldShowMatchdayBanner } from '@/ads/ad-policy';
 import { maybeShowInterstitial, useAdIntensity } from '@/ads/mobile-ads-provider';
+import { showRewardedForAutoReveal } from '@/ads/rewarded-manager';
 import { AdBannerSlot } from '@/components/ad-banner-slot';
 import { ChampionCelebrationScreen } from '@/components/champion-celebration-screen';
 import { MatchdayGameplayBar } from '@/components/matchday-gameplay-bar';
@@ -206,6 +207,7 @@ export function MatchdayHubScreen() {
   const [knockoutTimeline, setKnockoutTimeline] = useState<KnockoutTimelineState | null>(null);
   const [knockoutSpectatorMode, setKnockoutSpectatorMode] = useState(false);
   const [showEliminationChampion, setShowEliminationChampion] = useState(false);
+  const [autoRevealAdPending, setAutoRevealAdPending] = useState(false);
 
   const persistSettings = useCallback(
     async (patch: Partial<AppSettings>) => {
@@ -221,6 +223,30 @@ export function MatchdayHubScreen() {
       router.replace('/');
     })();
   }, [router]);
+
+  const handleAutoRevealChange = useCallback(
+    (value: boolean) => {
+      void (async () => {
+        if (!value) {
+          await persistSettings({ autoReveal: false });
+          return;
+        }
+
+        setAutoRevealAdPending(true);
+
+        try {
+          const rewarded = await showRewardedForAutoReveal();
+
+          if (rewarded) {
+            await persistSettings({ autoReveal: true });
+          }
+        } finally {
+          setAutoRevealAdPending(false);
+        }
+      })();
+    },
+    [persistSettings],
+  );
   const listRef = useRef<FlatList>(null);
   const userIsScrollingRef = useRef(false);
   const scrollOffsetRef = useRef(0);
@@ -1249,9 +1275,8 @@ export function MatchdayHubScreen() {
       {showMatchdayBanner ? <AdBannerSlot placement="matchday" /> : null}
       <MatchdayGameplayBar
         autoReveal={autoReveal}
-        onAutoRevealChange={(value) => {
-          void persistSettings({ autoReveal: value });
-        }}
+        autoRevealPending={autoRevealAdPending}
+        onAutoRevealChange={handleAutoRevealChange}
       />
       <MatchdayClockHeader dateLabel={tickerDateLabel} timeLabel={tickerTimeLabel} />
 

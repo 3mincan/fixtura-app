@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { resolveAdIntensity, type AdGate } from '@/ads/ad-policy';
 import { preloadInterstitial, showInterstitialIfAllowed } from '@/ads/interstitial-manager';
 import { loadMobileAdsModule } from '@/ads/native-ads';
+import { preloadRewardedAd } from '@/ads/rewarded-manager';
+import { fetchRemoteConfig } from '@/services/backend-api';
 import { useAppStore } from '@/store/app-store';
 
 export function MobileAdsProvider() {
@@ -41,10 +43,21 @@ export function MobileAdsProvider() {
       try {
         await ads.default().initialize();
         preloadInterstitial();
+        preloadRewardedAd();
       } catch {
         started = false;
       }
     }
+
+    void fetchRemoteConfig()
+      .then((config) => {
+        if (!cancelled && config) {
+          useAppStore.getState().setRemoteConfig(config);
+          preloadInterstitial();
+          preloadRewardedAd();
+        }
+      })
+      .catch(() => {});
 
     void startGoogleMobileAdsSDK();
     void ads.AdsConsent.gatherConsent()
