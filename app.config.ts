@@ -1,6 +1,7 @@
 import type { ExpoConfig } from 'expo/config';
 
 import appJson from './app.json';
+import iosPrivacyManifest from './ios-privacy-manifest.json';
 
 type ExpoConfigWithExtra = ExpoConfig & {
   extra?: Record<string, unknown>;
@@ -17,14 +18,22 @@ const GTM_CONTAINER_ID =
 
 const appExpoConfig = appJson.expo as ExpoConfigWithExtra;
 const appPlugins = (appExpoConfig.plugins ?? []) as NonNullable<ExpoConfig['plugins']>;
+const appIos = appExpoConfig.ios ?? {};
 
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ...config,
   ...appExpoConfig,
+  ios: {
+    ...appIos,
+    privacyManifests: iosPrivacyManifest,
+  },
   plugins: [
     ...appPlugins,
+    'expo-asset',
     'expo-dev-client',
     'expo-audio',
+    'expo-font',
+    'expo-image',
     'expo-localization',
     './plugins/with-ios-localizations.js',
     [
@@ -32,6 +41,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
       {
         iosAppId: ADMOB_IOS_APP_ID,
         androidAppId: ADMOB_ANDROID_APP_ID,
+        delayAppMeasurementInit: true,
       },
     ],
   ],

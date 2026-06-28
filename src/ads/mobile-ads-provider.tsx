@@ -11,13 +11,38 @@ export function MobileAdsProvider() {
       return;
     }
 
-    const mobileAds = loadMobileAdsModule();
-    if (!mobileAds) {
-      return;
+    let cancelled = false;
+
+    async function bootstrapMobileAds() {
+      const mobileAdsModule = loadMobileAdsModule();
+      if (!mobileAdsModule) {
+        return;
+      }
+
+      try {
+        await mobileAdsModule.AdsConsent.gatherConsent();
+      } catch {
+        // Consent UI failures should not block gameplay.
+      }
+
+      if (cancelled) {
+        return;
+      }
+
+      const { canRequestAds } = await mobileAdsModule.AdsConsent.getConsentInfo();
+      if (!canRequestAds) {
+        return;
+      }
+
+      await mobileAdsModule.default().initialize();
+      preloadInterstitial();
     }
 
-    void mobileAds.default().initialize();
-    preloadInterstitial();
+    void bootstrapMobileAds();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return null;

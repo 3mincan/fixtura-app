@@ -1,0 +1,12 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "info": {
+      "en-US": {
+        "marketingUrl": "https://fixtura.xyz",
+        "supportUrl": "https://fixtura.xyz/support",
+        "privacyPolicyUrl": "https://fixtura.xyz/privacy"
+      }
+    }
+  }
+}

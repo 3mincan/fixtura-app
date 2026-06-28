@@ -15,5 +15,12 @@
     "production": {
       "node": "20.19.4"
     }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "metadataPath": "./store.config.json"
+      }
+    }
   }
 }
