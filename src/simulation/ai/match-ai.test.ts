@@ -176,7 +176,7 @@ describe('simulateRatingBasedFallbackScore', () => {
 });
 
 describe('resolveMatchScores', () => {
-  it('generates local scores without calling Gemini when api key is disabled', async () => {
+  it('generates local scores without calling the backend when remote AI is disabled', async () => {
     const originalFetch = globalThis.fetch;
     let fetchCalled = false;
 
@@ -188,7 +188,7 @@ describe('resolveMatchScores', () => {
     try {
       const scores = await resolveMatchScores({
         fixtures: [sampleMatch],
-        apiKey: null,
+        useBackendAi: false,
         seed: 'local-generate',
       });
 

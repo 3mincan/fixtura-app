@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react';
 
-import { getGeminiApiKey } from '@/config/env';
 import { resolveMatchScores } from '@/simulation/ai';
 import { useAppStore } from '@/store/app-store';
 import { useAiMatchScoresStore } from '@/store/ai-match-scores-store';
@@ -40,7 +39,6 @@ export function useAiMatchScores({
       return;
     }
 
-    const apiKey = useGemini ? getGeminiApiKey() : null;
     const backendUserId = useAppStore.getState().backendUserId;
 
     let cancelled = false;
@@ -63,7 +61,7 @@ export function useAiMatchScores({
       try {
         const resolvedScores = await resolveMatchScores({
           fixtures: fixturesToResolve,
-          apiKey,
+          useBackendAi: useGemini,
           backendUserId,
           completedMatches,
           groupStandings,

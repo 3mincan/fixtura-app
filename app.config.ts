@@ -39,7 +39,6 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
     ...config.extra,
     ...appExpoConfig.extra,
     backendBaseUrl: BACKEND_BASE_URL,
-    geminiApiKey: process.env.GEMINI_API_KEY ?? process.env.EXPO_PUBLIC_GEMINI_API_KEY ?? '',
     gtmContainerId: GTM_CONTAINER_ID,
   },
 });

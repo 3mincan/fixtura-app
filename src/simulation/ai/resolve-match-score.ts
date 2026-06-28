@@ -1,10 +1,4 @@
 import { teamRatingsById } from '@/data/team-ratings';
-import { buildMatchAiRequest } from '@/simulation/ai/build-match-ai-request';
-import {
-  fetchGeminiMatchScore,
-  fetchGeminiMatchScores,
-  GeminiRequestError,
-} from '@/simulation/ai/gemini-match-score';
 import type { AppLanguage } from '@/types/app-settings';
 import type { Match, PeriodScore } from '@/types/match';
 import type { Standing } from '@/types/standing';
@@ -14,15 +8,12 @@ import { createSeededRandom } from '@/utils/seeded-random';
 import type { SeededRandom } from '@/utils/seeded-random';
 import { pickWeighted, type WeightedOutcome } from '@/utils/weighted-random';
 
-const DEFAULT_GEMINI_RATE_LIMIT_COOLDOWN_MS = 60_000;
 const FALLBACK_BASE_EXPECTED_GOALS = 1.18;
 const FALLBACK_MAX_GOALS = 9;
 
-let geminiBlockedUntilMs = 0;
-
 export type ResolveMatchScoreInput = {
   fixture: Match;
-  apiKey?: string | null;
+  useBackendAi?: boolean;
   backendUserId?: string | null;
   completedMatches?: Match[];
   groupStandings?: Record<string, Standing[]>;
@@ -154,7 +145,7 @@ export function simulateRatingBasedFallbackScore(
 export async function resolveMatchScore(input: ResolveMatchScoreInput): Promise<PeriodScore> {
   const {
     fixture,
-    apiKey,
+    useBackendAi = true,
     backendUserId,
     completedMatches = [],
     groupStandings,
@@ -163,40 +154,17 @@ export async function resolveMatchScore(input: ResolveMatchScoreInput): Promise<
     seed = 'ai-match-score',
   } = input;
 
-  const backendScore = await tryResolveBackendScore({
-    fixture,
-    backendUserId,
-    completedMatches,
-    groupStandings,
-    language,
-  });
+  if (useBackendAi) {
+    const backendScore = await tryResolveBackendScore({
+      fixture,
+      backendUserId,
+      completedMatches,
+      groupStandings,
+      language,
+    });
 
-  if (backendScore) {
-    return backendScore;
-  }
-
-  if (apiKey) {
-    if (Date.now() < geminiBlockedUntilMs) {
-      return simulateRatingBasedFallbackScore(fixture, ratings, seed);
-    }
-
-    try {
-      const request = buildMatchAiRequest({
-        fixture,
-        completedMatches,
-        groupStandings,
-        language,
-      });
-      const score = await fetchGeminiMatchScore(request, apiKey);
-
-      return score;
-    } catch (error) {
-      if (error instanceof GeminiRequestError && error.status === 429) {
-        geminiBlockedUntilMs =
-          Date.now() + (error.retryAfterMs ?? DEFAULT_GEMINI_RATE_LIMIT_COOLDOWN_MS);
-      }
-
-      return simulateRatingBasedFallbackScore(fixture, ratings, seed);
+    if (backendScore) {
+      return backendScore;
     }
   }
 
@@ -208,7 +176,7 @@ export async function resolveMatchScores(
 ): Promise<Record<string, PeriodScore>> {
   const {
     fixtures,
-    apiKey,
+    useBackendAi = true,
     backendUserId,
     completedMatches = [],
     groupStandings,
@@ -229,43 +197,17 @@ export async function resolveMatchScores(
       ]),
     );
 
-  const backendScores = await resolveBackendScores({
-    fixtures,
-    backendUserId,
-    completedMatches,
-    groupStandings,
-    language,
-  });
+  if (useBackendAi) {
+    const backendScores = await resolveBackendScores({
+      fixtures,
+      backendUserId,
+      completedMatches,
+      groupStandings,
+      language,
+    });
 
-  if (backendScores) {
-    return backendScores;
-  }
-
-  if (apiKey) {
-    if (Date.now() < geminiBlockedUntilMs) {
-      return fallbackScores();
-    }
-
-    try {
-      return await fetchGeminiMatchScores(
-        fixtures.map((fixture) => ({
-          id: fixture.id,
-          ...buildMatchAiRequest({
-            fixture,
-            completedMatches,
-            groupStandings,
-            language,
-          }),
-        })),
-        apiKey,
-      );
-    } catch (error) {
-      if (error instanceof GeminiRequestError && error.status === 429) {
-        geminiBlockedUntilMs =
-          Date.now() + (error.retryAfterMs ?? DEFAULT_GEMINI_RATE_LIMIT_COOLDOWN_MS);
-      }
-
-      return fallbackScores();
+    if (backendScores) {
+      return backendScores;
     }
   }
 
@@ -280,7 +222,13 @@ async function tryResolveBackendScore(input: {
   language: AppLanguage;
 }): Promise<PeriodScore | null> {
   try {
-    return await resolveBackendMatchScore(input);
+    return await resolveBackendMatchScore({
+      fixture: input.fixture,
+      userId: input.backendUserId,
+      completedMatches: input.completedMatches,
+      groupStandings: input.groupStandings,
+      language: input.language,
+    });
   } catch {
     return null;
   }
@@ -298,7 +246,7 @@ async function resolveBackendScores(input: {
       input.fixtures.map(async (fixture) => {
         const score = await resolveBackendMatchScore({
           fixture,
-          backendUserId: input.backendUserId,
+          userId: input.backendUserId,
           completedMatches: input.completedMatches,
           groupStandings: input.groupStandings,
           language: input.language,

@@ -35,7 +35,11 @@ export function SettingsScreen() {
     await saveAppSettings(db, pickPersistableAppSettings(nextSettings));
 
     for (const [key, value] of Object.entries(patch)) {
-      if (value !== undefined) {
+      if (
+        value !== undefined &&
+        value !== null &&
+        (typeof value === 'string' || typeof value === 'boolean' || typeof value === 'number')
+      ) {
         trackSettingChanged({ key, value });
       }
     }
