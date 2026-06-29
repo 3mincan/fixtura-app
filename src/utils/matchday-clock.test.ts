@@ -16,6 +16,7 @@ import {
   getClockTickIntervalMs,
   getInitialViewMatchday,
   getMatchdayClockStart,
+  getTournamentClockStart,
   getVisibleTimelineFixtures,
   isFixtureVisibleInTimeline,
   TIMELINE_VISIBILITY_MS,
@@ -33,7 +34,6 @@ import {
   getUserGroupMatchAwaitingPrediction,
   isAnyUserGroupMatchAwaitingPrediction,
   isPendingUserMatchAwaitingPrediction,
-  isMatchWithinUpcomingWindow,
   UPCOMING_WINDOW_MS,
 } from '@/utils/matchday-clock';
 import { getUserGroupMatches } from '@/utils/user-matches';
@@ -306,6 +306,41 @@ describe('matchday clock', () => {
 
     assert.ok(start);
     assert.ok(start.getTime() <= parseMatchKickoff(sampleMatch)!.getTime());
+  });
+
+  it('anchors tournament clock to the first fixture on or after a requested start date', () => {
+    const fixtures: Match[] = [
+      {
+        ...sampleMatch,
+        id: 'round-of-32-early',
+        stage: 'round-of-32',
+        scheduledDate: '2026-06-28',
+        scheduledTime: '18:00 UTC-4',
+      },
+      {
+        ...sampleMatch,
+        id: 'round-of-32-today',
+        stage: 'round-of-32',
+        scheduledDate: '2026-06-29',
+        scheduledTime: '16:30 UTC-4',
+      },
+      {
+        ...sampleMatch,
+        id: 'round-of-32-later',
+        stage: 'round-of-32',
+        scheduledDate: '2026-06-30',
+        scheduledTime: '12:00 UTC-4',
+      },
+    ];
+
+    const start = getTournamentClockStart(fixtures, { startDate: '2026-06-29' });
+
+    assert.ok(start);
+    assert.equal(start.getFullYear(), 2026);
+    assert.equal(start.getMonth(), 5);
+    assert.equal(start.getDate(), 29);
+    assert.equal(start.getHours(), 16);
+    assert.equal(start.getMinutes(), 30);
   });
 
   it('uses a 105 minute match duration including halftime', () => {

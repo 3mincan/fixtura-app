@@ -179,6 +179,7 @@ export function MatchdayHubScreen() {
   const selectedTeamId = useTournamentStore((state) => state.selectedTeamId);
   const gameMode = useTournamentStore((state) => state.gameMode);
   const startMode = useTournamentStore((state) => state.startMode);
+  const startDate = useTournamentStore((state) => state.startDate);
   const isRandomGame = gameMode === 'random';
   const useOfficialResults = startMode === 'today';
   const tournamentPhase = useTournamentStore((state) => state.tournamentPhase);
@@ -750,7 +751,9 @@ export function MatchdayHubScreen() {
             ? completedRoundsFromStart
             : pendingKnockoutTimelineRounds
         : pendingKnockoutTimelineRounds;
-    const clockStart = getTournamentClockStart(timeline.fixtures);
+    const clockStart = getTournamentClockStart(timeline.fixtures, {
+      startDate: useOfficialResults ? startDate : null,
+    });
 
     setKnockoutTimeline(timeline);
     setPendingKnockoutTimelineRounds(roundsToShow.slice(1));
@@ -766,7 +769,9 @@ export function MatchdayHubScreen() {
     pendingKnockoutTimelineRounds,
     roundOf32Fixtures,
     selectedTeamId,
+    startDate,
     userPredictions,
+    useOfficialResults,
   ]);
 
   useEffect(() => {

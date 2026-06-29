@@ -52,6 +52,35 @@ describe('tournament persistence', () => {
     assert.ok(state.activeSimulationId);
   });
 
+  it('restores from-today start date after a simulated app restart', async () => {
+    ({ client: db, close: closeDatabase } = await createTestDatabase());
+
+    useTournamentStore.getState().selectTeam('mex', {
+      startMode: 'today',
+      currentDate: new Date('2026-06-29T12:00:00'),
+    });
+
+    const beforeRestart = useTournamentStore.getState();
+    await saveTournamentProgress(db, toPersistableState(beforeRestart));
+
+    assert.equal(beforeRestart.startMode, 'today');
+    assert.equal(beforeRestart.startDate, '2026-06-29');
+    assert.equal(beforeRestart.tournamentPhase, 'knockout');
+
+    resetStore();
+
+    const restored = await loadTournamentProgress(db);
+    assert.ok(restored);
+    useTournamentStore.getState().hydrateFromPersistence(restored!);
+
+    const state = useTournamentStore.getState();
+    assert.equal(state.selectedTeamId, 'mex');
+    assert.equal(state.startMode, 'today');
+    assert.equal(state.startDate, '2026-06-29');
+    assert.equal(state.tournamentPhase, beforeRestart.tournamentPhase);
+    assert.equal(state.pendingKnockoutFixture?.id, beforeRestart.pendingKnockoutFixture?.id);
+  });
+
   it('restores predictions and tournament progress after a simulated app restart', async () => {
     ({ client: db, close: closeDatabase } = await createTestDatabase());
 

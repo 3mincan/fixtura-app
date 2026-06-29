@@ -109,12 +109,30 @@ export function getMatchdayClockStart(matchday: string): Date | null {
 
 export function getTournamentClockStart(
   fixtures: Match[] = worldCupGroupFixtures,
+  options: { startDate?: string | null } = {},
 ): Date | null {
-  const kickoffs = sortFixturesByKickoff(fixtures)
-    .map(parseMatchKickoff)
-    .filter((kickoff): kickoff is Date => kickoff !== null);
+  const sortedFixtures = sortFixturesByKickoff(fixtures);
+  let firstKickoff: Date | null = null;
 
-  return kickoffs[0] ?? null;
+  for (const fixture of sortedFixtures) {
+    const kickoff = parseMatchKickoff(fixture);
+
+    if (!kickoff) {
+      continue;
+    }
+
+    firstKickoff ??= kickoff;
+
+    if (
+      options.startDate &&
+      fixture.scheduledDate !== undefined &&
+      fixture.scheduledDate >= options.startDate
+    ) {
+      return kickoff;
+    }
+  }
+
+  return firstKickoff;
 }
 
 export function advanceMatchdayClock(clock: Date, minutes: number): Date {

@@ -103,7 +103,9 @@ function buildPendingKnockoutTimelineBoardFromStore() {
     userPredictions: state.userPredictions,
     seed: state.activeSimulationId ?? 'knockout-timeline',
   });
-  const clock = getTournamentClockStart(timeline.fixtures);
+  const clock = getTournamentClockStart(timeline.fixtures, {
+    startDate: state.startMode === 'today' ? state.startDate : null,
+  });
 
   assert.ok(clock);
 
@@ -154,6 +156,9 @@ describe('useTournamentStore', () => {
 
     assert.equal(state.selectedTeamId, null);
     assert.equal(state.activeSimulationId, null);
+    assert.equal(state.gameMode, 'predict');
+    assert.equal(state.startMode, 'beginning');
+    assert.equal(state.startDate, null);
     assert.equal(state.currentStage, 'group');
     assert.deepEqual(state.completedMatches, []);
     assert.equal(state.pendingUserMatch, null);
@@ -189,6 +194,7 @@ describe('useTournamentStore', () => {
     const completedOpener = state.completedMatches.find((match) => match.id === opener?.id);
 
     assert.equal(state.startMode, 'beginning');
+    assert.equal(state.startDate, null);
     assert.deepEqual(completedOpener?.result?.regulation, { home: 1, away: 0 });
     assert.equal(state.pendingUserMatch?.id, 'group-A-mex-kor');
   });
@@ -205,6 +211,7 @@ describe('useTournamentStore', () => {
     );
 
     assert.equal(state.startMode, 'today');
+    assert.equal(state.startDate, '2026-06-11');
     assert.deepEqual(completedOpener?.result?.regulation, { home: 2, away: 0 });
     assert.equal(state.pendingUserMatch?.id, 'group-A-mex-kor');
   });
@@ -265,6 +272,8 @@ describe('useTournamentStore', () => {
     assert.deepEqual(state.simulatedRevealMatches, []);
     assert.equal(state.simulatedRevealIndex, 0);
     assert.equal(state.currentStage, 'group');
+    assert.equal(state.startMode, 'beginning');
+    assert.equal(state.startDate, null);
   });
 
   it('stores a user prediction with scores and advances pending match', () => {
@@ -396,6 +405,43 @@ describe('useTournamentStore', () => {
     assert.equal(timeline.fixtures.length, 16);
     assert.ok(board.length > 0);
     assert.equal(isTimelineComplete(clock, timeline.fixtures, timeline.resultMatches), false);
+  });
+
+  it('anchors from-today knockout timelines on the selected calendar date', () => {
+    useTournamentStore.getState().selectTeam('mex', {
+      startMode: 'today',
+      currentDate: new Date('2026-06-29T12:00:00'),
+    });
+
+    const state = useTournamentStore.getState();
+
+    assert.equal(state.startDate, '2026-06-29');
+    assert.equal(state.tournamentPhase, 'knockout');
+    assert.ok(state.selectedTeamId);
+    assert.ok(state.pendingKnockoutFixture);
+
+    const timeline = buildPendingKnockoutTimelineState({
+      round: state.pendingKnockoutFixture.round,
+      roundOf32Fixtures: state.roundOf32Fixtures,
+      knockoutRoundResults: state.knockoutRoundResults,
+      pendingKnockoutFixture: state.pendingKnockoutFixture,
+      selectedTeamId: state.selectedTeamId,
+      userPredictions: state.userPredictions,
+      seed: state.activeSimulationId ?? 'knockout-timeline',
+    });
+    const unanchoredClock = getTournamentClockStart(timeline.fixtures);
+    const anchoredClock = getTournamentClockStart(timeline.fixtures, {
+      startDate: state.startDate,
+    });
+
+    assert.ok(unanchoredClock);
+    assert.ok(anchoredClock);
+    assert.equal(unanchoredClock.getFullYear(), 2026);
+    assert.equal(unanchoredClock.getMonth(), 5);
+    assert.equal(unanchoredClock.getDate(), 28);
+    assert.equal(anchoredClock.getFullYear(), 2026);
+    assert.equal(anchoredClock.getMonth(), 5);
+    assert.equal(anchoredClock.getDate(), 29);
   });
 
   it('builds a visible knockout timeline when random mode starts from today', () => {

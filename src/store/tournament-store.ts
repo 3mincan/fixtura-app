@@ -37,6 +37,7 @@ export type TournamentProgressState = {
   selectedTeamId: string | null;
   gameMode: GameMode;
   startMode: TournamentStartMode;
+  startDate: string | null;
   activeSimulationId: string | null;
   currentStage: TournamentStage;
   tournamentPhase: TournamentJourneyPhase;
@@ -80,6 +81,7 @@ const initialState: TournamentProgressState = {
   selectedTeamId: null,
   gameMode: 'predict',
   startMode: 'beginning',
+  startDate: null,
   activeSimulationId: null,
   currentStage: 'group',
   tournamentPhase: 'group',
@@ -178,10 +180,10 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
     const gameMode = options?.gameMode ?? state.gameMode ?? 'predict';
     const startMode = options?.startMode ?? state.startMode ?? 'beginning';
     const useOfficialResults = shouldUseOfficialResults(startMode);
+    const currentDate = options?.currentDate ?? new Date();
+    const startDate = startMode === 'today' ? formatFixtureDate(currentDate) : null;
     const completedMatches =
-      startMode === 'today'
-        ? getCompletedGroupMatchesThroughDate(options.currentDate ?? new Date())
-        : [];
+      startMode === 'today' ? getCompletedGroupMatchesThroughDate(currentDate) : [];
     const groupStandings =
       completedMatches.length > 0
         ? computeAllGroupStandings(completedMatches, { useOfficialResults })
@@ -222,6 +224,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
         selectedTeamId: startSelectedTeamId,
         gameMode,
         startMode,
+        startDate,
         activeSimulationId: createSimulationId(),
         completedMatches,
         pendingUserMatch: getNextUserMatch(startSelectedTeamId, teams, completedMatches, {
@@ -240,6 +243,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
     set({
       selectedTeamId: teamId,
       startMode,
+      startDate,
       pendingUserMatch: getNextUserMatch(teamId, teams, state.completedMatches, {
         useOfficialResults,
       }),
@@ -480,10 +484,13 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
   },
 
   hydrateFromPersistence: (saved) => {
+    const startMode = saved.startMode ?? 'beginning';
+
     set({
       selectedTeamId: saved.selectedTeamId,
       gameMode: saved.gameMode ?? 'predict',
-      startMode: saved.startMode ?? 'beginning',
+      startMode,
+      startDate: saved.startDate ?? (startMode === 'today' ? formatFixtureDate(new Date()) : null),
       activeSimulationId: saved.activeSimulationId,
       currentStage: saved.currentStage,
       tournamentPhase: saved.tournamentPhase,
@@ -493,7 +500,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
       pendingUserMatch:
         saved.tournamentPhase === 'group'
           ? getNextUserMatch(saved.selectedTeamId, teams, saved.completedMatches, {
-              useOfficialResults: shouldUseOfficialResults(saved.startMode ?? 'beginning'),
+              useOfficialResults: shouldUseOfficialResults(startMode),
             })
           : saved.pendingUserMatch,
       userPredictions: saved.userPredictions,

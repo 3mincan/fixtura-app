@@ -21,6 +21,7 @@ export type SavedSimulationSummary = {
 type SimulationProgressJson = {
   gameMode?: TournamentProgressState['gameMode'];
   startMode?: TournamentProgressState['startMode'];
+  startDate?: TournamentProgressState['startDate'];
   completedMatches: Match[];
   userPredictions: Record<string, UserMatchPrediction>;
   roundOf32Fixtures: KnockoutBracketMatch[];
@@ -78,6 +79,7 @@ export function toPersistableState(state: TournamentProgressState): TournamentPr
     selectedTeamId: state.selectedTeamId,
     gameMode: state.gameMode,
     startMode: state.startMode,
+    startDate: state.startDate,
     activeSimulationId: state.activeSimulationId,
     currentStage: state.currentStage,
     tournamentPhase: state.tournamentPhase,
@@ -163,6 +165,7 @@ function toProgressJson(state: TournamentProgressState): string {
   const progress: SimulationProgressJson = {
     gameMode: state.gameMode,
     startMode: state.startMode,
+    startDate: state.startDate,
     completedMatches: state.completedMatches,
     userPredictions: state.userPredictions,
     roundOf32Fixtures: state.roundOf32Fixtures,
@@ -192,6 +195,14 @@ function parseProgressJson(progressJson: string | null): SimulationProgressJson 
   }
 }
 
+function formatPersistedStartDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
 function buildLoadedState(simulation: SimulationRow | null): TournamentProgressState | null {
   if (!simulation?.team_id) {
     return null;
@@ -203,10 +214,14 @@ function buildLoadedState(simulation: SimulationRow | null): TournamentProgressS
     return null;
   }
 
+  const startMode = progress.startMode ?? 'beginning';
+  const startDate =
+    progress.startDate ?? (startMode === 'today' ? formatPersistedStartDate(new Date()) : null);
   const state: TournamentProgressState = {
     selectedTeamId: simulation.team_id,
     gameMode: progress.gameMode ?? 'predict',
-    startMode: progress.startMode ?? 'beginning',
+    startMode,
+    startDate,
     activeSimulationId: simulation.id,
     currentStage: simulation.current_stage,
     tournamentPhase: simulation.tournament_phase,
