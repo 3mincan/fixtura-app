@@ -341,7 +341,7 @@ export function MatchdayHubScreen() {
   const shouldRunGroupTimeline =
     selectedTeamId !== null &&
     !allGroupMatchesStored &&
-    tournamentPhase !== 'not-qualified';
+    tournamentPhase === 'group';
 
   const aiScores = useAiMatchScores({
     fixtures: worldCupGroupFixtures,
@@ -457,6 +457,39 @@ export function MatchdayHubScreen() {
     previewMatches,
     refreshGroupStandingsFromPreview,
     useOfficialResults,
+  ]);
+
+  useEffect(() => {
+    if (
+      !selectedTeamId ||
+      tournamentPhase !== 'group' ||
+      !allGroupMatchesStored ||
+      roundSummaryGate !== null ||
+      groupSummaryTriggeredRef.current
+    ) {
+      return;
+    }
+
+    if (Object.keys(groupStandings).length === 0) {
+      if (isRandomGame) {
+        completeRandomGroupStage();
+      } else {
+        refreshGroupStandingsFromPreview([]);
+      }
+    }
+
+    groupSummaryTriggeredRef.current = true;
+    setMatchdayClock(null);
+    setRoundSummaryGate({ kind: 'group' });
+  }, [
+    allGroupMatchesStored,
+    completeRandomGroupStage,
+    groupStandings,
+    isRandomGame,
+    refreshGroupStandingsFromPreview,
+    roundSummaryGate,
+    selectedTeamId,
+    tournamentPhase,
   ]);
 
   const boardEntries = useMemo(() => {
