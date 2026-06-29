@@ -21,6 +21,7 @@ export type PlayMatchdayInput = {
   ratings?: Record<string, TeamRating>;
   seed?: string | number;
   autoSimulateUserMatches?: boolean;
+  useOfficialResults?: boolean;
 };
 
 export type PlayMatchdayOutput = {
@@ -62,7 +63,11 @@ export function simulateFixture(
   };
 }
 
-function applyOfficialFixtureResult(fixture: Match): Match | null {
+function applyOfficialFixtureResult(fixture: Match, useOfficialResults = true): Match | null {
+  if (!useOfficialResults) {
+    return null;
+  }
+
   const officialResult = getOfficialFixtureResult(fixture.id);
 
   if (!officialResult) {
@@ -84,8 +89,9 @@ function resolveSimulatedFixtureResult(
   seed: string | number,
   aiScores?: Record<string, PeriodScore>,
   requireAiScores?: boolean,
+  useOfficialResults = true,
 ): Match | null {
-  const official = applyOfficialFixtureResult(fixture);
+  const official = applyOfficialFixtureResult(fixture, useOfficialResults);
 
   if (official) {
     return official;
@@ -117,8 +123,9 @@ function resolveFixtureResult(
   aiScores?: Record<string, PeriodScore>,
   autoSimulateUserMatches?: boolean,
   requireAiScores?: boolean,
+  useOfficialResults?: boolean,
 ): Match {
-  const official = applyOfficialFixtureResult(fixture);
+  const official = applyOfficialFixtureResult(fixture, useOfficialResults);
 
   if (official) {
     return official;
@@ -144,6 +151,7 @@ function resolveFixtureResult(
         seed,
         aiScores,
         requireAiScores,
+        useOfficialResults,
       );
 
       if (simulated) {
@@ -162,6 +170,7 @@ function resolveFixtureResult(
     seed,
     aiScores,
     requireAiScores,
+    useOfficialResults,
   );
 
   if (!simulated) {
@@ -180,6 +189,7 @@ export function previewAllGroupMatchdayResults(input: {
   aiScores?: Record<string, PeriodScore>;
   requireAiScores?: boolean;
   autoSimulateUserMatches?: boolean;
+  useOfficialResults?: boolean;
 }): Match[] {
   const {
     userTeamId,
@@ -190,6 +200,7 @@ export function previewAllGroupMatchdayResults(input: {
     aiScores,
     requireAiScores = false,
     autoSimulateUserMatches = false,
+    useOfficialResults = true,
   } = input;
 
   return getMatchdayOrder().flatMap((matchday) =>
@@ -203,6 +214,7 @@ export function previewAllGroupMatchdayResults(input: {
       aiScores,
       requireAiScores,
       autoSimulateUserMatches,
+      useOfficialResults,
     }),
   );
 }
@@ -217,6 +229,7 @@ export function previewMatchdayResults(input: {
   aiScores?: Record<string, PeriodScore>;
   requireAiScores?: boolean;
   autoSimulateUserMatches?: boolean;
+  useOfficialResults?: boolean;
 }): Match[] {
   const {
     matchday,
@@ -228,6 +241,7 @@ export function previewMatchdayResults(input: {
     aiScores,
     requireAiScores = false,
     autoSimulateUserMatches = false,
+    useOfficialResults = true,
   } = input;
 
   const completedMatchIds = new Set(completedMatches.map((match) => match.id));
@@ -252,7 +266,7 @@ export function previewMatchdayResults(input: {
         ];
       }
 
-      const official = applyOfficialFixtureResult(fixture);
+      const official = applyOfficialFixtureResult(fixture, useOfficialResults);
 
       if (official) {
         return [official];
@@ -268,6 +282,7 @@ export function previewMatchdayResults(input: {
         `${seed}:${matchday}`,
         aiScores,
         false,
+        useOfficialResults,
       );
 
       return simulated ? [simulated] : [];
@@ -279,6 +294,7 @@ export function previewMatchdayResults(input: {
       `${seed}:${matchday}`,
       aiScores,
       requireAiScores,
+      useOfficialResults,
     );
 
     return simulated ? [simulated] : [];
@@ -297,6 +313,7 @@ export function playMatchday(
     seed = 'matchday',
     aiScores,
     autoSimulateUserMatches = false,
+    useOfficialResults = true,
   } = input;
 
   const completedMatchIds = new Set(completedMatches.map((match) => match.id));
@@ -313,6 +330,8 @@ export function playMatchday(
       `${seed}:${matchday}`,
       aiScores,
       autoSimulateUserMatches,
+      undefined,
+      useOfficialResults,
     ),
   );
 
@@ -320,7 +339,7 @@ export function playMatchday(
 
   return {
     completedMatches: nextCompletedMatches,
-    groupStandings: computeAllGroupStandings(nextCompletedMatches),
+    groupStandings: computeAllGroupStandings(nextCompletedMatches, { useOfficialResults }),
     playedMatchIds: playedMatches.map((match) => match.id),
   };
 }
@@ -341,10 +360,11 @@ function isUserMatchResolvedForProgress(
   matchId: string,
   completedMatchIds: Set<string>,
   userPredictions: Record<string, PeriodScore>,
+  useOfficialResults = true,
 ): boolean {
   return (
     completedMatchIds.has(matchId) ||
-    hasOfficialFixtureResult(matchId) ||
+    (useOfficialResults && hasOfficialFixtureResult(matchId)) ||
     userPredictions[matchId] !== undefined
   );
 }
@@ -354,12 +374,18 @@ function getNextUncompletedUserMatchday(
   completedMatchIds: Set<string>,
   matchdayOrder: string[],
   userPredictions: Record<string, PeriodScore>,
+  useOfficialResults: boolean,
 ): string | null {
   for (const matchday of matchdayOrder) {
     const hasUncompletedUserMatch = getMatchesForMatchday(matchday).some(
       (fixture) =>
         userMatchIds.includes(fixture.id) &&
-        !isUserMatchResolvedForProgress(fixture.id, completedMatchIds, userPredictions),
+        !isUserMatchResolvedForProgress(
+          fixture.id,
+          completedMatchIds,
+          userPredictions,
+          useOfficialResults,
+        ),
     );
 
     if (hasUncompletedUserMatch) {
@@ -380,6 +406,7 @@ export function advanceThroughMatchdays(input: {
   seed?: string | number;
   aiScores?: Record<string, PeriodScore>;
   autoSimulateUserMatches?: boolean;
+  useOfficialResults?: boolean;
 }): PlayMatchdayOutput & { lastPlayedMatchday: string } {
   const {
     fromMatchday,
@@ -391,6 +418,7 @@ export function advanceThroughMatchdays(input: {
     seed = 'matchday-progress',
     aiScores,
     autoSimulateUserMatches = false,
+    useOfficialResults = true,
   } = input;
 
   const matchdayOrder = getMatchdayOrder();
@@ -402,7 +430,7 @@ export function advanceThroughMatchdays(input: {
 
   let state: PlayMatchdayOutput = {
     completedMatches,
-    groupStandings: computeAllGroupStandings(completedMatches),
+    groupStandings: computeAllGroupStandings(completedMatches, { useOfficialResults }),
     playedMatchIds: [],
   };
   let lastPlayedMatchday = fromMatchday;
@@ -415,6 +443,7 @@ export function advanceThroughMatchdays(input: {
       completedIds,
       matchdayOrder,
       userPredictions,
+      useOfficialResults,
     );
 
     if (
@@ -439,6 +468,7 @@ export function advanceThroughMatchdays(input: {
         seed: `${seed}:${matchday}`,
         aiScores,
         autoSimulateUserMatches,
+        useOfficialResults,
       });
 
       state = {

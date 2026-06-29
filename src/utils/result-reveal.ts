@@ -14,6 +14,7 @@ export type GetSimulatedRevealMatchesInput = {
   userPredictions?: Record<string, UserMatchPrediction>;
   ratings?: Record<string, TeamRating>;
   seed?: string | number;
+  useOfficialResults?: boolean;
 };
 
 export function getSimulatedGroupMatchesToReveal(
@@ -25,6 +26,7 @@ export function getSimulatedGroupMatchesToReveal(
     userPredictions = {},
     ratings = teamRatingsById,
     seed = DEFAULT_RESULT_REVEAL_SEED,
+    useOfficialResults = true,
   } = input;
 
   if (!selectedTeamId) {
@@ -37,7 +39,11 @@ export function getSimulatedGroupMatchesToReveal(
     return null;
   }
 
-  if (!hasAllUserGroupPredictions(selectedTeamId, teamList, userPredictions)) {
+  if (
+    !hasAllUserGroupPredictions(selectedTeamId, teamList, userPredictions, {
+      useOfficialResults,
+    })
+  ) {
     return null;
   }
 

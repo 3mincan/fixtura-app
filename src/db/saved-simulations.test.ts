@@ -63,6 +63,6 @@ describe('saved simulations screen data', () => {
     const state = useTournamentStore.getState();
     assert.equal(state.selectedTeamId, 'mex');
     assert.equal(state.activeSimulationId, savedState.activeSimulationId);
-    assert.equal(state.pendingUserMatch?.id, 'group-A-mex-kor');
+    assert.equal(state.pendingUserMatch?.id, 'group-A-mex-rsa');
   });
 });

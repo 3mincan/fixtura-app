@@ -4,8 +4,13 @@ import { mergeOfficialGroupResults } from '@/data/worldcup-fixtures';
 import type { Match } from '@/types/match';
 import type { Standing } from '@/types/standing';
 
-export function computeAllGroupStandings(completedMatches: Match[]): Record<string, Standing[]> {
-  const completedGroupMatches = mergeOfficialGroupResults(completedMatches).filter(
+export function computeAllGroupStandings(
+  completedMatches: Match[],
+  options: { useOfficialResults?: boolean } = {},
+): Record<string, Standing[]> {
+  const useOfficialResults = options.useOfficialResults ?? true;
+  const matches = useOfficialResults ? mergeOfficialGroupResults(completedMatches) : completedMatches;
+  const completedGroupMatches = matches.filter(
     (match) => match.stage === 'group' && match.status === 'completed' && match.result,
   );
   const standings: Record<string, Standing[]> = {};

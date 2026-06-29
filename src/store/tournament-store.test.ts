@@ -176,6 +176,39 @@ describe('useTournamentStore', () => {
     assert.ok(state.activeSimulationId);
   });
 
+  it('starts from the beginning without consuming official results', () => {
+    useTournamentStore.getState().selectTeam('mex', { startMode: 'beginning' });
+
+    const opener = useTournamentStore.getState().pendingUserMatch;
+
+    assert.equal(opener?.id, 'group-A-mex-rsa');
+
+    useTournamentStore.getState().saveUserPrediction(opener!, 1, 0);
+
+    const state = useTournamentStore.getState();
+    const completedOpener = state.completedMatches.find((match) => match.id === opener?.id);
+
+    assert.equal(state.startMode, 'beginning');
+    assert.deepEqual(completedOpener?.result?.regulation, { home: 1, away: 0 });
+    assert.equal(state.pendingUserMatch?.id, 'group-A-mex-kor');
+  });
+
+  it('starts from today by consuming official results through the date', () => {
+    useTournamentStore.getState().selectTeam('mex', {
+      startMode: 'today',
+      currentDate: new Date('2026-06-11T12:00:00'),
+    });
+
+    const state = useTournamentStore.getState();
+    const completedOpener = state.completedMatches.find(
+      (match) => match.id === 'group-A-mex-rsa',
+    );
+
+    assert.equal(state.startMode, 'today');
+    assert.deepEqual(completedOpener?.result?.regulation, { home: 2, away: 0 });
+    assert.equal(state.pendingUserMatch?.id, 'group-A-mex-kor');
+  });
+
   it('keeps selectedTeamId in sync with tournament state', () => {
     useTournamentStore.getState().setTournamentState(makeTournamentState());
     useTournamentStore.getState().selectTeam('usa');
@@ -244,7 +277,7 @@ describe('useTournamentStore', () => {
     const state = useTournamentStore.getState();
 
     assert.deepEqual(state.userPredictions[pendingMatch.id], { home: 3, away: 0 });
-    assert.equal(state.pendingUserMatch?.id, 'group-A-cze-mex');
+    assert.equal(state.pendingUserMatch?.id, 'group-A-mex-kor');
   });
 
   it('completes group stage and starts knockout in random mode', () => {

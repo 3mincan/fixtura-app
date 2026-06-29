@@ -178,7 +178,9 @@ export function MatchdayHubScreen() {
   const requireAiScores = isInstantSpeed;
   const selectedTeamId = useTournamentStore((state) => state.selectedTeamId);
   const gameMode = useTournamentStore((state) => state.gameMode);
+  const startMode = useTournamentStore((state) => state.startMode);
   const isRandomGame = gameMode === 'random';
+  const useOfficialResults = startMode === 'today';
   const tournamentPhase = useTournamentStore((state) => state.tournamentPhase);
   const championId = useTournamentStore((state) => state.championId);
   const pendingUserMatch = useTournamentStore((state) => state.pendingUserMatch);
@@ -287,8 +289,10 @@ export function MatchdayHubScreen() {
       return null;
     }
 
-    return getNextUserMatch(selectedTeamId, teams, completedMatches);
-  }, [selectedTeamId, tournamentPhase, completedMatches]);
+    return getNextUserMatch(selectedTeamId, teams, completedMatches, {
+      useOfficialResults,
+    });
+  }, [selectedTeamId, tournamentPhase, completedMatches, useOfficialResults]);
 
   useEffect(() => {
     if (!selectedTeamId || tournamentPhase !== 'group' || !nextUserGroupMatch) {
@@ -355,8 +359,9 @@ export function MatchdayHubScreen() {
       aiScores,
       requireAiScores,
       autoSimulateUserMatches: isRandomGame,
+      useOfficialResults,
     });
-  }, [selectedTeamId, shouldRunGroupTimeline, userPredictions, completedMatches, aiScores, requireAiScores, isRandomGame]);
+  }, [selectedTeamId, shouldRunGroupTimeline, userPredictions, completedMatches, aiScores, requireAiScores, isRandomGame, useOfficialResults]);
 
   const matchdayResultMatches = useMemo(
     () => mergeMatchdayResults(completedMatches, previewMatches),
@@ -364,8 +369,11 @@ export function MatchdayHubScreen() {
   );
 
   const summaryGroupStandings = useMemo(
-    () => computeFinalGroupStandings(completedMatches, previewMatches),
-    [completedMatches, previewMatches],
+    () =>
+      computeFinalGroupStandings(completedMatches, previewMatches, {
+        useOfficialResults,
+      }),
+    [completedMatches, previewMatches, useOfficialResults],
   );
 
   const groupTimelineActive =
@@ -412,7 +420,9 @@ export function MatchdayHubScreen() {
     );
     const allUserPredictionsDone = isRandomGame
       ? groupTimelineComplete
-      : hasAllUserGroupPredictions(selectedTeamId, teams, userPredictions);
+      : hasAllUserGroupPredictions(selectedTeamId, teams, userPredictions, {
+          useOfficialResults,
+        });
 
     if (groupTimelineComplete && allUserPredictionsDone) {
       if (isRandomGame) {
@@ -438,6 +448,7 @@ export function MatchdayHubScreen() {
     completeRandomGroupStage,
     previewMatches,
     refreshGroupStandingsFromPreview,
+    useOfficialResults,
   ]);
 
   const boardEntries = useMemo(() => {
@@ -492,8 +503,9 @@ export function MatchdayHubScreen() {
       teams,
       matchdayClock,
       userPredictions,
+      { useOfficialResults },
     );
-  }, [isRandomGame, matchdayClock, selectedTeamId, tournamentPhase, userPredictions]);
+  }, [isRandomGame, matchdayClock, selectedTeamId, tournamentPhase, userPredictions, useOfficialResults]);
 
   const needsUserMatchPrediction = userMatchForPrediction !== null;
 
@@ -531,6 +543,7 @@ export function MatchdayHubScreen() {
       activeKnockoutUserMatch,
       matchdayClock,
       userPredictions,
+      { useOfficialResults },
     );
   }, [
     activeKnockoutUserMatch,
@@ -540,6 +553,7 @@ export function MatchdayHubScreen() {
     pendingKnockoutFixture?.round,
     tournamentPhase,
     userPredictions,
+    useOfficialResults,
   ]);
 
   const isUserTeamPlaying = useMemo(() => {
@@ -632,6 +646,7 @@ export function MatchdayHubScreen() {
       pendingUserMatch: knockoutTimelineActive ? activeKnockoutUserMatch : null,
       userPredictions,
       autoSimulateUserMatches: isRandomGame,
+      useOfficialResults,
     },
   );
 
@@ -784,6 +799,7 @@ export function MatchdayHubScreen() {
     groupStandings,
     language,
     autoSimulateUserMatches: isRandomGame,
+    useOfficialResults,
   });
 
   const groupBracketView = useMemo(() => {
@@ -803,6 +819,7 @@ export function MatchdayHubScreen() {
         tournamentPhase,
         knockoutRoundResults,
         championId,
+        useOfficialResults,
       }),
     [
       selectedTeamId,
@@ -810,6 +827,7 @@ export function MatchdayHubScreen() {
       tournamentPhase,
       knockoutRoundResults,
       championId,
+      useOfficialResults,
     ],
   );
 

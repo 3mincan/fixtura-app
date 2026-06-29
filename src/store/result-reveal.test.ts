@@ -20,7 +20,7 @@ describe('result reveal flow', () => {
   it('prepares simulated matches and lets the user move through results', () => {
     useTournamentStore.getState().selectTeam('mex');
 
-    for (const matchId of ['group-A-mex-kor', 'group-A-cze-mex']) {
+    for (const matchId of ['group-A-mex-rsa', 'group-A-mex-kor', 'group-A-cze-mex']) {
       const pendingMatch = useTournamentStore.getState().pendingUserMatch!;
       assert.equal(pendingMatch.id, matchId);
       useTournamentStore.getState().saveUserPrediction(pendingMatch, 1, 0);

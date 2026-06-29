@@ -98,6 +98,8 @@ export function GroupTableScreen() {
   const userPredictions = useTournamentStore((state) => state.userPredictions);
   const completedMatches = useTournamentStore((state) => state.completedMatches);
   const groupStandings = useTournamentStore((state) => state.groupStandings);
+  const startMode = useTournamentStore((state) => state.startMode);
+  const useOfficialResults = startMode === 'today';
 
   const table = useMemo(
     () =>
@@ -107,8 +109,9 @@ export function GroupTableScreen() {
         userPredictions,
         completedMatches,
         groupStandings,
+        useOfficialResults,
       }),
-    [selectedTeamId, userPredictions, completedMatches, groupStandings],
+    [selectedTeamId, userPredictions, completedMatches, groupStandings, useOfficialResults],
   );
 
   if (!table) {

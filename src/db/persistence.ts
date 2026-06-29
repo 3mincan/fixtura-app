@@ -20,6 +20,7 @@ export type SavedSimulationSummary = {
 
 type SimulationProgressJson = {
   gameMode?: TournamentProgressState['gameMode'];
+  startMode?: TournamentProgressState['startMode'];
   completedMatches: Match[];
   userPredictions: Record<string, UserMatchPrediction>;
   roundOf32Fixtures: KnockoutBracketMatch[];
@@ -76,6 +77,7 @@ export function toPersistableState(state: TournamentProgressState): TournamentPr
   return {
     selectedTeamId: state.selectedTeamId,
     gameMode: state.gameMode,
+    startMode: state.startMode,
     activeSimulationId: state.activeSimulationId,
     currentStage: state.currentStage,
     tournamentPhase: state.tournamentPhase,
@@ -99,7 +101,9 @@ function derivePendingUserMatch(state: TournamentProgressState): Match | null {
     return knockoutFixtureToMatch(state.pendingKnockoutFixture);
   }
 
-  return getNextUserMatch(state.selectedTeamId, teams, state.completedMatches);
+  return getNextUserMatch(state.selectedTeamId, teams, state.completedMatches, {
+    useOfficialResults: state.startMode === 'today',
+  });
 }
 
 function matchToRow(match: Match, simulationId: string): MatchRow {
@@ -158,6 +162,7 @@ function collectPersistedMatches(state: TournamentProgressState): Match[] {
 function toProgressJson(state: TournamentProgressState): string {
   const progress: SimulationProgressJson = {
     gameMode: state.gameMode,
+    startMode: state.startMode,
     completedMatches: state.completedMatches,
     userPredictions: state.userPredictions,
     roundOf32Fixtures: state.roundOf32Fixtures,
@@ -201,6 +206,7 @@ function buildLoadedState(simulation: SimulationRow | null): TournamentProgressS
   const state: TournamentProgressState = {
     selectedTeamId: simulation.team_id,
     gameMode: progress.gameMode ?? 'predict',
+    startMode: progress.startMode ?? 'beginning',
     activeSimulationId: simulation.id,
     currentStage: simulation.current_stage,
     tournamentPhase: simulation.tournament_phase,

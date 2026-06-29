@@ -38,6 +38,8 @@ export function KnockoutBracketScreen() {
   const tournamentPhase = useTournamentStore((state) => state.tournamentPhase);
   const knockoutRoundResults = useTournamentStore((state) => state.knockoutRoundResults);
   const championId = useTournamentStore((state) => state.championId);
+  const startMode = useTournamentStore((state) => state.startMode);
+  const useOfficialResults = startMode === 'today';
 
   const bracket = useMemo(
     () =>
@@ -48,8 +50,16 @@ export function KnockoutBracketScreen() {
         tournamentPhase,
         knockoutRoundResults,
         championId,
+        useOfficialResults,
       }),
-    [selectedTeamId, userPredictions, tournamentPhase, knockoutRoundResults, championId],
+    [
+      selectedTeamId,
+      userPredictions,
+      tournamentPhase,
+      knockoutRoundResults,
+      championId,
+      useOfficialResults,
+    ],
   );
 
   if (!selectedTeamId) {

@@ -34,7 +34,7 @@ describe('MVP flow verification', () => {
   it('completes the full tournament journey from team selection to champion', () => {
     useTournamentStore.getState().selectTeam('mex');
 
-    const remainingGroupMatches = ['group-A-mex-kor', 'group-A-cze-mex'];
+    const remainingGroupMatches = ['group-A-mex-rsa', 'group-A-mex-kor', 'group-A-cze-mex'];
 
     assert.equal(getUserGroupMatches('mex', teams).length, 3);
 
@@ -89,7 +89,7 @@ describe('MVP flow verification', () => {
   it('restarts with a fresh tournament after the user picks a new team', () => {
     useTournamentStore.getState().selectTeam('mex');
 
-    for (const matchId of ['group-A-mex-kor', 'group-A-cze-mex']) {
+    for (const matchId of ['group-A-mex-rsa', 'group-A-mex-kor', 'group-A-cze-mex']) {
       const { pendingUserMatch } = useTournamentStore.getState();
       assert.equal(pendingUserMatch?.id, matchId);
       useTournamentStore.getState().saveUserPrediction(pendingUserMatch!, 3, 0);
@@ -129,7 +129,7 @@ describe('MVP flow verification', () => {
     try {
       useTournamentStore.getState().selectTeam('mex');
 
-      for (const matchId of ['group-A-mex-kor', 'group-A-cze-mex']) {
+      for (const matchId of ['group-A-mex-rsa', 'group-A-mex-kor', 'group-A-cze-mex']) {
         const { pendingUserMatch } = useTournamentStore.getState();
         assert.equal(pendingUserMatch?.id, matchId);
         useTournamentStore.getState().saveUserPrediction(pendingUserMatch!, 2, 1);

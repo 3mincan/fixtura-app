@@ -30,6 +30,10 @@ const CLOCK_BATCH_MS: Record<SimulationSpeed, number> = {
   instant: 450,
 };
 
+type OfficialResultsOptions = {
+  useOfficialResults?: boolean;
+};
+
 export const INSTANT_REVEAL_ANIMATION_MS = 450;
 export const INSTANT_IDLE_STEP_MS = 180;
 
@@ -380,8 +384,16 @@ export function shouldOpenUserMatchFocus(
   match: Match | null,
   clock: Date | null,
   hasPrediction: boolean,
+  options: OfficialResultsOptions = {},
 ): boolean {
-  if (!match || !clock || hasPrediction || hasOfficialFixtureResult(match.id)) {
+  const useOfficialResults = options.useOfficialResults ?? true;
+
+  if (
+    !match ||
+    !clock ||
+    hasPrediction ||
+    (useOfficialResults && hasOfficialFixtureResult(match.id))
+  ) {
     return false;
   }
 
@@ -393,9 +405,13 @@ export function shouldOpenUserMatchFocus(
 function isUnresolvedUserGroupMatch(
   match: Match,
   userPredictions: Record<string, PeriodScore | unknown>,
+  options: OfficialResultsOptions = {},
 ): boolean {
+  const useOfficialResults = options.useOfficialResults ?? true;
+
   return (
-    userPredictions[match.id] === undefined && !hasOfficialFixtureResult(match.id)
+    userPredictions[match.id] === undefined &&
+    (!useOfficialResults || !hasOfficialFixtureResult(match.id))
   );
 }
 
@@ -403,8 +419,9 @@ export function isUserGroupMatchAwaitingPrediction(
   match: Match,
   clock: Date,
   userPredictions: Record<string, PeriodScore | unknown> = {},
+  options: OfficialResultsOptions = {},
 ): boolean {
-  if (!isUnresolvedUserGroupMatch(match, userPredictions)) {
+  if (!isUnresolvedUserGroupMatch(match, userPredictions, options)) {
     return false;
   }
 
@@ -419,13 +436,14 @@ export function isAnyUserGroupMatchAwaitingPrediction(
   clock: Date | null,
   userPredictions: Record<string, PeriodScore | unknown> = {},
   autoSimulateUserMatches = false,
+  options: OfficialResultsOptions = {},
 ): boolean {
   if (!clock || autoSimulateUserMatches) {
     return false;
   }
 
   return getUserGroupMatches(userTeamId, teamList).some((match) =>
-    isUserGroupMatchAwaitingPrediction(match, clock, userPredictions),
+    isUserGroupMatchAwaitingPrediction(match, clock, userPredictions, options),
   );
 }
 
@@ -434,9 +452,10 @@ export function getUserGroupMatchAwaitingPrediction(
   teamList: Team[],
   clock: Date,
   userPredictions: Record<string, PeriodScore | unknown> = {},
+  options: OfficialResultsOptions = {},
 ): Match | null {
   for (const match of getUserGroupMatches(selectedTeamId, teamList)) {
-    if (isUserGroupMatchAwaitingPrediction(match, clock, userPredictions)) {
+    if (isUserGroupMatchAwaitingPrediction(match, clock, userPredictions, options)) {
       return match;
     }
   }
@@ -471,6 +490,7 @@ export function capClockForUserGroupMatches(
   teamList: Team[],
   userPredictions: Record<string, PeriodScore | unknown>,
   autoSimulateUserMatches = false,
+  options: OfficialResultsOptions = {},
 ): Date {
   if (autoSimulateUserMatches) {
     return proposedClock;
@@ -479,7 +499,7 @@ export function capClockForUserGroupMatches(
   let capped = proposedClock;
 
   for (const match of getUserGroupMatches(userTeamId, teamList)) {
-    if (!isUnresolvedUserGroupMatch(match, userPredictions)) {
+    if (!isUnresolvedUserGroupMatch(match, userPredictions, options)) {
       continue;
     }
 
@@ -488,6 +508,7 @@ export function capClockForUserGroupMatches(
       capped,
       match,
       userPredictions,
+      options,
     );
   }
 
@@ -499,6 +520,7 @@ export function capClockAtPendingUserMatchKickoff(
   proposedClock: Date,
   pendingUserMatch: Match | null,
   userPredictions: Record<string, unknown>,
+  options: OfficialResultsOptions = {},
 ): Date {
   if (!pendingUserMatch) {
     return proposedClock;
@@ -508,7 +530,13 @@ export function capClockAtPendingUserMatchKickoff(
     return proposedClock;
   }
 
-  if (pendingUserMatch.stage === 'group' && hasOfficialFixtureResult(pendingUserMatch.id)) {
+  const useOfficialResults = options.useOfficialResults ?? true;
+
+  if (
+    useOfficialResults &&
+    pendingUserMatch.stage === 'group' &&
+    hasOfficialFixtureResult(pendingUserMatch.id)
+  ) {
     return proposedClock;
   }
 
@@ -547,6 +575,7 @@ export function isPendingUserMatchAwaitingPrediction(
   pendingUserMatch: Match | null,
   clock: Date | null,
   userPredictions: Record<string, unknown>,
+  options: OfficialResultsOptions = {},
 ): boolean {
   if (!pendingUserMatch || !clock) {
     return false;
@@ -561,6 +590,7 @@ export function isPendingUserMatchAwaitingPrediction(
       pendingUserMatch,
       clock,
       userPredictions,
+      options,
     );
   }
 

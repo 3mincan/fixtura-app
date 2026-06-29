@@ -19,22 +19,22 @@ describe('match prediction flow', () => {
 
     const firstMatch = useTournamentStore.getState().pendingUserMatch;
 
-    assert.equal(firstMatch?.id, 'group-A-mex-kor');
+    assert.equal(firstMatch?.id, 'group-A-mex-rsa');
 
     useTournamentStore.getState().saveUserPrediction(firstMatch!, 2, 1);
 
     const state = useTournamentStore.getState();
 
-    assert.deepEqual(state.userPredictions['group-A-mex-kor'], { home: 2, away: 1 });
-    assert.ok(state.completedMatches.some((match) => match.id === 'group-A-mex-kor'));
-    assert.equal(state.pendingUserMatch?.id, 'group-A-cze-mex');
+    assert.deepEqual(state.userPredictions['group-A-mex-rsa'], { home: 2, away: 1 });
+    assert.ok(state.completedMatches.some((match) => match.id === 'group-A-mex-rsa'));
+    assert.equal(state.pendingUserMatch?.id, 'group-A-mex-kor');
     assert.ok(Object.keys(state.groupStandings).length > 0);
   });
 
   it('moves through all remaining group matches for the selected team', () => {
     useTournamentStore.getState().selectTeam('mex');
 
-    const expectedMatchIds = ['group-A-mex-kor', 'group-A-cze-mex'];
+    const expectedMatchIds = ['group-A-mex-rsa', 'group-A-mex-kor', 'group-A-cze-mex'];
 
     for (const matchId of expectedMatchIds) {
       const { pendingUserMatch } = useTournamentStore.getState();
@@ -46,7 +46,7 @@ describe('match prediction flow', () => {
 
     const state = useTournamentStore.getState();
 
-    assert.equal(Object.keys(state.userPredictions).length, 2);
+    assert.equal(Object.keys(state.userPredictions).length, 3);
     assert.equal(state.tournamentPhase, 'group');
     assert.equal(state.pendingUserMatch, null);
     assert.equal(getNextUserMatch('mex', teams, state.completedMatches), null);

@@ -42,6 +42,7 @@ export type GetKnockoutBracketViewInput = {
   tournamentPhase?: TournamentJourneyPhase;
   knockoutRoundResults?: KnockoutRoundResult[];
   championId?: string | null;
+  useOfficialResults?: boolean;
 };
 
 function getRoundName(round: KnockoutRound): string {
@@ -161,6 +162,7 @@ export function getKnockoutBracketView(
     tournamentPhase = 'group',
     knockoutRoundResults = [],
     championId = null,
+    useOfficialResults = true,
   } = input;
 
   if (!selectedTeamId) {
@@ -174,7 +176,11 @@ export function getKnockoutBracketView(
     return buildKnockoutBracketViewFromRounds(knockoutRoundResults, championId);
   }
 
-  if (!hasAllUserGroupPredictions(selectedTeamId, teamList, userPredictions)) {
+  if (
+    !hasAllUserGroupPredictions(selectedTeamId, teamList, userPredictions, {
+      useOfficialResults,
+    })
+  ) {
     return null;
   }
 

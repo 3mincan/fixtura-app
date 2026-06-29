@@ -42,6 +42,7 @@ type UseInstantMatchdayClockInput = {
   language: AppLanguage;
   fixtures?: Match[];
   autoSimulateUserMatches?: boolean;
+  useOfficialResults?: boolean;
 };
 
 function getInProgressFixtures(clock: Date, fixtures: Match[]): Match[] {
@@ -54,6 +55,7 @@ function getSimulatableInProgressFixtures(
   userTeamId: string,
   userPredictions: Record<string, UserMatchPrediction>,
   autoSimulateUserMatches: boolean,
+  useOfficialResults: boolean,
 ): Match[] {
   return getInProgressFixtures(clock, fixtures).filter((fixture) => {
     if (!matchInvolvesTeam(fixture, userTeamId)) {
@@ -64,7 +66,7 @@ function getSimulatableInProgressFixtures(
       return true;
     }
 
-    if (getOfficialFixtureResult(fixture.id)) {
+    if (useOfficialResults && getOfficialFixtureResult(fixture.id)) {
       return true;
     }
 
@@ -79,6 +81,7 @@ function getInstantMatchBatchEnd(
   userPredictions: Record<string, UserMatchPrediction>,
   autoSimulateUserMatches: boolean,
   pendingUserMatch: Match | null,
+  useOfficialResults: boolean,
 ): Date {
   if (
     !autoSimulateUserMatches &&
@@ -87,6 +90,8 @@ function getInstantMatchBatchEnd(
       teams,
       clock,
       userPredictions,
+      false,
+      { useOfficialResults },
     )
   ) {
     return clock;
@@ -98,6 +103,7 @@ function getInstantMatchBatchEnd(
     userTeamId,
     userPredictions,
     autoSimulateUserMatches,
+    useOfficialResults,
   );
 
   let nextClock: Date;
@@ -122,6 +128,7 @@ function getInstantMatchBatchEnd(
     teams,
     userPredictions,
     autoSimulateUserMatches,
+    { useOfficialResults },
   );
 }
 
@@ -130,6 +137,7 @@ function getKnownFixtureScore(
   userTeamId: string,
   userPredictions: Record<string, UserMatchPrediction>,
   autoSimulateUserMatches: boolean,
+  useOfficialResults: boolean,
 ): PeriodScore | null {
   if (matchInvolvesTeam(fixture, userTeamId)) {
     const prediction = userPredictions[fixture.id];
@@ -138,7 +146,7 @@ function getKnownFixtureScore(
       return prediction;
     }
 
-    const officialResult = getOfficialFixtureResult(fixture.id);
+    const officialResult = useOfficialResults ? getOfficialFixtureResult(fixture.id) : null;
 
     if (officialResult) {
       return officialResult;
@@ -166,6 +174,7 @@ function advanceClockTo(
   userTeamId: string,
   userPredictions: Record<string, UserMatchPrediction>,
   autoSimulateUserMatches: boolean,
+  useOfficialResults: boolean,
 ) {
   const currentClock = clockRef.current ?? time;
   const nextClock = capClockForUserGroupMatches(
@@ -175,6 +184,7 @@ function advanceClockTo(
     teams,
     userPredictions,
     autoSimulateUserMatches,
+    { useOfficialResults },
   );
 
   setMatchdayClock(nextClock);
@@ -193,6 +203,7 @@ export function useInstantMatchdayClock({
   language,
   fixtures = worldCupGroupFixtures,
   autoSimulateUserMatches = false,
+  useOfficialResults = true,
 }: UseInstantMatchdayClockInput) {
   const clockRef = useRef(matchdayClock);
 
@@ -231,6 +242,7 @@ export function useInstantMatchdayClock({
           userTeamId,
           userPredictions,
           autoSimulateUserMatches,
+          useOfficialResults,
         );
 
         if (score) {
@@ -265,6 +277,8 @@ export function useInstantMatchdayClock({
             teams,
             liveClock,
             userPredictions,
+            false,
+            { useOfficialResults },
           )
         ) {
           const awaitingMatch = getUserGroupMatchAwaitingPrediction(
@@ -272,6 +286,7 @@ export function useInstantMatchdayClock({
             teams,
             liveClock,
             userPredictions,
+            { useOfficialResults },
           );
 
           if (awaitingMatch) {
@@ -282,6 +297,7 @@ export function useInstantMatchdayClock({
               userTeamId,
               userPredictions,
               autoSimulateUserMatches,
+              useOfficialResults,
             );
           }
 
@@ -303,6 +319,7 @@ export function useInstantMatchdayClock({
           userTeamId,
           userPredictions,
           autoSimulateUserMatches,
+          useOfficialResults,
         );
 
         const delayMs =
@@ -332,6 +349,8 @@ export function useInstantMatchdayClock({
           teams,
           clock,
           userPredictions,
+          false,
+          { useOfficialResults },
         )
       ) {
         const awaitingMatch = getUserGroupMatchAwaitingPrediction(
@@ -339,6 +358,7 @@ export function useInstantMatchdayClock({
           teams,
           clock,
           userPredictions,
+          { useOfficialResults },
         );
 
         if (awaitingMatch) {
@@ -349,6 +369,7 @@ export function useInstantMatchdayClock({
             userTeamId,
             userPredictions,
             autoSimulateUserMatches,
+            useOfficialResults,
           );
         }
 
@@ -362,6 +383,7 @@ export function useInstantMatchdayClock({
         userTeamId,
         userPredictions,
         autoSimulateUserMatches,
+        useOfficialResults,
       );
       const isMatchBatch =
         inProgressFixtures.length > 0 ||
@@ -376,6 +398,7 @@ export function useInstantMatchdayClock({
               userPredictions,
               completedMatchIds,
               autoSimulateUserMatches,
+              { useOfficialResults },
             ),
         );
 
@@ -389,6 +412,7 @@ export function useInstantMatchdayClock({
             language,
             useGemini: false,
             resolvePendingScores: true,
+            useOfficialResults,
           });
 
           if (cancelled) {
@@ -403,6 +427,7 @@ export function useInstantMatchdayClock({
                 userPredictions,
                 completedMatchIds,
                 autoSimulateUserMatches,
+                { useOfficialResults },
               ),
           );
 
@@ -437,6 +462,7 @@ export function useInstantMatchdayClock({
           userPredictions,
           autoSimulateUserMatches,
           pendingUserMatch,
+          useOfficialResults,
         );
 
         advanceClockTo(
@@ -446,6 +472,7 @@ export function useInstantMatchdayClock({
           userTeamId,
           userPredictions,
           autoSimulateUserMatches,
+          useOfficialResults,
         );
         runStep();
       });
@@ -471,5 +498,6 @@ export function useInstantMatchdayClock({
     userPredictions,
     userTeamId,
     autoSimulateUserMatches,
+    useOfficialResults,
   ]);
 }

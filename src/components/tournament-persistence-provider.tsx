@@ -87,10 +87,12 @@ async function syncOfficialResultsFromBackend() {
 
   useOfficialResultsStore.getState().hydrateResults(results, source.fetchedAt ?? Date.now());
 
-  const completedMatches = useTournamentStore.getState().completedMatches;
+  const tournamentState = useTournamentStore.getState();
 
   useTournamentStore.setState({
-    groupStandings: computeAllGroupStandings(completedMatches),
+    groupStandings: computeAllGroupStandings(tournamentState.completedMatches, {
+      useOfficialResults: tournamentState.startMode === 'today',
+    }),
   });
 }
 

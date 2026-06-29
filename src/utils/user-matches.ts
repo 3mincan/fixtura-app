@@ -2,6 +2,10 @@ import { getWorldCupGroupFixtures, hasOfficialFixtureResult } from '@/data/world
 import type { Match } from '@/types/match';
 import type { Team } from '@/types/team';
 
+type OfficialResultsOptions = {
+  useOfficialResults?: boolean;
+};
+
 export function matchInvolvesTeam(match: Match, teamId: string): boolean {
   return match.homeTeamId === teamId || match.awayTeamId === teamId;
 }
@@ -26,18 +30,21 @@ export function getNextUserMatch(
   selectedTeamId: string | null,
   teamList: Team[],
   completedMatches: Match[] = [],
+  options: OfficialResultsOptions = {},
 ): Match | null {
   if (!selectedTeamId) {
     return null;
   }
 
+  const useOfficialResults = options.useOfficialResults ?? true;
   const completedMatchIds = new Set(completedMatches.map((match) => match.id));
   const userMatches = getUserGroupMatches(selectedTeamId, teamList);
 
   return (
     userMatches.find(
       (match) =>
-        !completedMatchIds.has(match.id) && !hasOfficialFixtureResult(match.id),
+        !completedMatchIds.has(match.id) &&
+        (!useOfficialResults || !hasOfficialFixtureResult(match.id)),
     ) ?? null
   );
 }

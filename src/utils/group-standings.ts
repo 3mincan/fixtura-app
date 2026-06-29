@@ -35,8 +35,12 @@ export type ThirdPlaceRankingRow = GroupTableRow & {
 export function computeFinalGroupStandings(
   completedMatches: Match[],
   previewMatches: Match[] = [],
+  options: { useOfficialResults?: boolean } = {},
 ): Record<string, Standing[]> {
-  return computeAllGroupStandings(mergeMatchdayResults(completedMatches, previewMatches));
+  return computeAllGroupStandings(
+    mergeMatchdayResults(completedMatches, previewMatches),
+    options,
+  );
 }
 
 export function getQualifiedThirdPlaceTeamIds(
@@ -144,6 +148,7 @@ export type GetGroupTableInput = {
   groupStandings?: Record<string, Standing[]>;
   ratings?: Record<string, TeamRating>;
   seed?: string | number;
+  useOfficialResults?: boolean;
 };
 
 export function buildGroupTableRows(standings: Standing[]): GroupTableRow[] {
@@ -176,6 +181,7 @@ export function getGroupTable(input: GetGroupTableInput): GroupTable | null {
     groupStandings = {},
     ratings = teamRatingsById,
     seed = DEFAULT_GROUP_TABLE_SEED,
+    useOfficialResults = true,
   } = input;
 
   if (!selectedTeamId) {
@@ -203,7 +209,11 @@ export function getGroupTable(input: GetGroupTableInput): GroupTable | null {
   let matchResults: Match[];
   const groupUserPredictions = selectPeriodScorePredictions(userPredictions);
 
-  if (hasAllUserGroupPredictions(selectedTeamId, teamList, userPredictions)) {
+  if (
+    hasAllUserGroupPredictions(selectedTeamId, teamList, userPredictions, {
+      useOfficialResults,
+    })
+  ) {
     const groupOutput = simulateGroup({
       groupId,
       teamIds,

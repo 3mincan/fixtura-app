@@ -41,16 +41,21 @@ export type TournamentJourneyInput = {
   seed?: string | number;
   completedMatches?: Match[];
   groupStandings?: Record<string, Standing[]>;
+  useOfficialResults?: boolean;
 };
 
 export function hasAllUserGroupPredictions(
   selectedTeamId: string,
   teamList: Team[],
   userPredictions: Record<string, UserMatchPrediction>,
+  options: { useOfficialResults?: boolean } = {},
 ): boolean {
+  const useOfficialResults = options.useOfficialResults ?? true;
+
   return getUserGroupMatches(selectedTeamId, teamList).every(
     (match) =>
-      isPeriodScorePrediction(userPredictions[match.id]) || hasOfficialFixtureResult(match.id),
+      isPeriodScorePrediction(userPredictions[match.id]) ||
+      (useOfficialResults && hasOfficialFixtureResult(match.id)),
   );
 }
 
@@ -194,10 +199,12 @@ export function startKnockoutJourney(input: TournamentJourneyInput): TournamentJ
     teamList,
     ratings,
     seed = DEFAULT_JOURNEY_SEED,
+    useOfficialResults = true,
   } = input;
 
   const standings =
-    input.groupStandings ?? computeAllGroupStandings(input.completedMatches ?? []);
+    input.groupStandings ??
+    computeAllGroupStandings(input.completedMatches ?? [], { useOfficialResults });
 
   const userGroupId = teamList.find((team) => team.id === selectedTeamId)?.group;
 

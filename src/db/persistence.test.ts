@@ -48,7 +48,7 @@ describe('tournament persistence', () => {
 
     const state = useTournamentStore.getState();
     assert.equal(state.selectedTeamId, 'mex');
-    assert.equal(state.pendingUserMatch?.id, 'group-A-mex-kor');
+    assert.equal(state.pendingUserMatch?.id, 'group-A-mex-rsa');
     assert.ok(state.activeSimulationId);
   });
 
@@ -57,7 +57,7 @@ describe('tournament persistence', () => {
 
     useTournamentStore.getState().selectTeam('mex');
 
-    const expectedMatchIds = ['group-A-mex-kor', 'group-A-cze-mex'];
+    const expectedMatchIds = ['group-A-mex-rsa', 'group-A-mex-kor', 'group-A-cze-mex'];
 
     for (const expectedMatchId of expectedMatchIds) {
       const { pendingUserMatch } = useTournamentStore.getState();
@@ -137,6 +137,6 @@ describe('tournament persistence', () => {
     const state = useTournamentStore.getState();
     assert.equal(state.selectedTeamId, 'mex');
     assert.equal(state.activeSimulationId, mexState.activeSimulationId);
-    assert.equal(state.pendingUserMatch?.id, 'group-A-mex-kor');
+    assert.equal(state.pendingUserMatch?.id, 'group-A-mex-rsa');
   });
 });

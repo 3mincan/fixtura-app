@@ -16,6 +16,7 @@ type EnsureAiMatchScoresInput = {
   language: AppLanguage;
   useGemini?: boolean;
   resolvePendingScores?: boolean;
+  useOfficialResults?: boolean;
 };
 
 export async function ensureAiMatchScoresForFixtures(
@@ -30,6 +31,7 @@ export async function ensureAiMatchScoresForFixtures(
     language,
     useGemini = true,
     resolvePendingScores = false,
+    useOfficialResults = true,
   } = input;
   const backendUserId = useAppStore.getState().backendUserId;
   const store = useAiMatchScoresStore.getState();
@@ -37,7 +39,7 @@ export async function ensureAiMatchScoresForFixtures(
   const fixturesToResolve = fixtures.filter(
     (fixture) =>
       !completedMatchIds.has(fixture.id) &&
-      !hasOfficialFixtureResult(fixture.id) &&
+      (!useOfficialResults || !hasOfficialFixtureResult(fixture.id)) &&
       !matchInvolvesTeam(fixture, userTeamId) &&
       store.scores[fixture.id] === undefined &&
       (resolvePendingScores || !store.pendingMatchIds.has(fixture.id)),
@@ -80,14 +82,16 @@ export function getMissingAiScoreFixtureIds(
   fixtures: Match[],
   userTeamId: string,
   completedMatchIds: Set<string>,
+  options: { useOfficialResults?: boolean } = {},
 ): string[] {
   const store = useAiMatchScoresStore.getState();
+  const useOfficialResults = options.useOfficialResults ?? true;
 
   return fixtures
     .filter(
       (fixture) =>
         !completedMatchIds.has(fixture.id) &&
-        !hasOfficialFixtureResult(fixture.id) &&
+        (!useOfficialResults || !hasOfficialFixtureResult(fixture.id)) &&
         !matchInvolvesTeam(fixture, userTeamId) &&
         store.scores[fixture.id] === undefined,
     )
@@ -100,12 +104,15 @@ export function hasAiScoreForFixture(
   userPredictions: Record<string, PeriodScore | unknown>,
   completedMatchIds: Set<string>,
   autoSimulateUserMatches = false,
+  options: { useOfficialResults?: boolean } = {},
 ): boolean {
   if (completedMatchIds.has(fixture.id)) {
     return true;
   }
 
-  if (hasOfficialFixtureResult(fixture.id)) {
+  const useOfficialResults = options.useOfficialResults ?? true;
+
+  if (useOfficialResults && hasOfficialFixtureResult(fixture.id)) {
     return true;
   }
 

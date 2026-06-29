@@ -23,6 +23,7 @@ type AnimatedMatchdayClockOptions = {
   pendingUserMatch?: Match | null;
   userPredictions?: Record<string, UserMatchPrediction>;
   autoSimulateUserMatches?: boolean;
+  useOfficialResults?: boolean;
 };
 
 export function shouldPauseForPendingTimelinePrediction(input: {
@@ -30,6 +31,7 @@ export function shouldPauseForPendingTimelinePrediction(input: {
   clock: Date | null;
   userPredictions: Record<string, UserMatchPrediction>;
   autoSimulateUserMatches: boolean;
+  useOfficialResults?: boolean;
 }): boolean {
   if (input.autoSimulateUserMatches) {
     return false;
@@ -39,6 +41,7 @@ export function shouldPauseForPendingTimelinePrediction(input: {
     input.pendingUserMatch,
     input.clock,
     input.userPredictions,
+    { useOfficialResults: input.useOfficialResults },
   );
 }
 
@@ -48,6 +51,7 @@ export function capClockAtPendingTimelinePrediction(input: {
   pendingUserMatch: Match | null;
   userPredictions: Record<string, UserMatchPrediction>;
   autoSimulateUserMatches: boolean;
+  useOfficialResults?: boolean;
 }): Date {
   if (input.autoSimulateUserMatches) {
     return input.proposedClock;
@@ -58,6 +62,7 @@ export function capClockAtPendingTimelinePrediction(input: {
     input.proposedClock,
     input.pendingUserMatch,
     input.userPredictions,
+    { useOfficialResults: input.useOfficialResults },
   );
 }
 
@@ -79,6 +84,7 @@ export function useAnimatedMatchdayClock(
     [options.userPredictions],
   );
   const autoSimulateUserMatches = options.autoSimulateUserMatches ?? false;
+  const useOfficialResults = options.useOfficialResults ?? true;
 
   useEffect(() => {
     clockRef.current = matchdayClock;
@@ -126,6 +132,7 @@ export function useAnimatedMatchdayClock(
             currentClock,
             userPredictions,
             autoSimulateUserMatches,
+            { useOfficialResults },
           );
         const awaitingKnockout =
           pendingUserMatch &&
@@ -135,6 +142,7 @@ export function useAnimatedMatchdayClock(
             clock: currentClock,
             userPredictions,
             autoSimulateUserMatches,
+            useOfficialResults,
           });
 
         if (awaitingGroup || awaitingKnockout) {
@@ -144,6 +152,7 @@ export function useAnimatedMatchdayClock(
                 teams,
                 currentClock!,
                 userPredictions,
+                { useOfficialResults },
               )
             : pendingUserMatch;
 
@@ -164,6 +173,7 @@ export function useAnimatedMatchdayClock(
                   teams,
                   userPredictions,
                   autoSimulateUserMatches,
+                  { useOfficialResults },
                 );
               }
 
@@ -173,6 +183,7 @@ export function useAnimatedMatchdayClock(
                 pendingUserMatch,
                 userPredictions,
                 autoSimulateUserMatches,
+                useOfficialResults,
               });
 
               clockRef.current = next;
@@ -208,6 +219,7 @@ export function useAnimatedMatchdayClock(
               teams,
               userPredictions,
               autoSimulateUserMatches,
+              { useOfficialResults },
             );
           }
 
@@ -217,6 +229,7 @@ export function useAnimatedMatchdayClock(
             pendingUserMatch,
             userPredictions,
             autoSimulateUserMatches,
+            useOfficialResults,
           });
 
           clockRef.current = next;
@@ -250,5 +263,6 @@ export function useAnimatedMatchdayClock(
     setMatchdayClock,
     speed,
     userPredictions,
+    useOfficialResults,
   ]);
 }

@@ -36,6 +36,7 @@ export type TournamentStartMode = 'beginning' | 'today';
 export type TournamentProgressState = {
   selectedTeamId: string | null;
   gameMode: GameMode;
+  startMode: TournamentStartMode;
   activeSimulationId: string | null;
   currentStage: TournamentStage;
   tournamentPhase: TournamentJourneyPhase;
@@ -78,6 +79,7 @@ export type TournamentStore = TournamentProgressState & TournamentStoreActions;
 const initialState: TournamentProgressState = {
   selectedTeamId: null,
   gameMode: 'predict',
+  startMode: 'beginning',
   activeSimulationId: null,
   currentStage: 'group',
   tournamentPhase: 'group',
@@ -120,6 +122,10 @@ function applyJourneyState(
       ? knockoutFixtureToMatch(journey.pendingKnockoutFixture)
       : null,
   };
+}
+
+function shouldUseOfficialResults(startMode: TournamentStartMode): boolean {
+  return startMode === 'today';
 }
 
 function getRandomModeKnockoutAnchorTeamId(
@@ -170,12 +176,16 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
   selectTeam: (teamId, options) => {
     const state = get();
     const gameMode = options?.gameMode ?? state.gameMode ?? 'predict';
+    const startMode = options?.startMode ?? state.startMode ?? 'beginning';
+    const useOfficialResults = shouldUseOfficialResults(startMode);
     const completedMatches =
-      options?.startMode === 'today'
+      startMode === 'today'
         ? getCompletedGroupMatchesThroughDate(options.currentDate ?? new Date())
         : [];
     const groupStandings =
-      completedMatches.length > 0 ? computeAllGroupStandings(completedMatches) : {};
+      completedMatches.length > 0
+        ? computeAllGroupStandings(completedMatches, { useOfficialResults })
+        : {};
     const startsAfterCompletedGroupStage =
       completedMatches.length > 0 && isGroupStageComplete(completedMatches);
     const startSelectedTeamId =
@@ -190,6 +200,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
           ratings: teamRatingsById,
           completedMatches,
           groupStandings,
+          useOfficialResults,
         })
       : null;
     const isTerminalPhase =
@@ -210,9 +221,12 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
         ...initialState,
         selectedTeamId: startSelectedTeamId,
         gameMode,
+        startMode,
         activeSimulationId: createSimulationId(),
         completedMatches,
-        pendingUserMatch: getNextUserMatch(startSelectedTeamId, teams, completedMatches),
+        pendingUserMatch: getNextUserMatch(startSelectedTeamId, teams, completedMatches, {
+          useOfficialResults,
+        }),
         groupStandings,
         tournamentState: preserveTournamentState
           ? { ...state.tournamentState!, userTeamId: teamId }
@@ -225,7 +239,10 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
 
     set({
       selectedTeamId: teamId,
-      pendingUserMatch: getNextUserMatch(teamId, teams, state.completedMatches),
+      startMode,
+      pendingUserMatch: getNextUserMatch(teamId, teams, state.completedMatches, {
+        useOfficialResults,
+      }),
     });
 
     const { tournamentState } = get();
@@ -289,6 +306,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
         userMatchIds: [],
         aiScores: useAiMatchScoresStore.getState().scores,
         autoSimulateUserMatches: true,
+        useOfficialResults: shouldUseOfficialResults(state.startMode),
       });
 
       return {
@@ -305,6 +323,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
     set((state) => ({
       groupStandings: computeAllGroupStandings(
         mergeMatchdayResults(state.completedMatches, previewMatches),
+        { useOfficialResults: shouldUseOfficialResults(state.startMode) },
       ),
     }));
   },
@@ -365,6 +384,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
           userPredictions: groupUserPredictions,
           userMatchIds,
           aiScores: useAiMatchScoresStore.getState().scores,
+          useOfficialResults: shouldUseOfficialResults(state.startMode),
         });
 
         return {
@@ -381,6 +401,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
             selectedTeamId,
             teams,
             matchdayProgress.completedMatches,
+            { useOfficialResults: shouldUseOfficialResults(state.startMode) },
           ),
         };
       }
@@ -449,6 +470,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
       ratings: teamRatingsById,
       completedMatches: state.completedMatches,
       groupStandings: state.groupStandings,
+      useOfficialResults: shouldUseOfficialResults(state.startMode),
     });
 
     set({
@@ -461,6 +483,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
     set({
       selectedTeamId: saved.selectedTeamId,
       gameMode: saved.gameMode ?? 'predict',
+      startMode: saved.startMode ?? 'beginning',
       activeSimulationId: saved.activeSimulationId,
       currentStage: saved.currentStage,
       tournamentPhase: saved.tournamentPhase,
@@ -469,7 +492,9 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
       completedMatches: saved.completedMatches,
       pendingUserMatch:
         saved.tournamentPhase === 'group'
-          ? getNextUserMatch(saved.selectedTeamId, teams, saved.completedMatches)
+          ? getNextUserMatch(saved.selectedTeamId, teams, saved.completedMatches, {
+              useOfficialResults: shouldUseOfficialResults(saved.startMode ?? 'beginning'),
+            })
           : saved.pendingUserMatch,
       userPredictions: saved.userPredictions,
       roundOf32Fixtures: saved.roundOf32Fixtures,
