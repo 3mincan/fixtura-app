@@ -4,8 +4,8 @@
 "allResultsRevealed" = "تم الكشف عن جميع نتائج المجموعة المحاكاة.";
 "appName" = "Fixtura";
 "appSubtitle" = "محاكاة كأس العالم 2026";
-"autoReveal" = "كشف تلقائي";
-"autoRevealDescription" = "الكشف عن المباريات المحاكاة تلقائياً.";
+"autoReveal" = "كشف النتائج";
+"autoRevealDescription" = "شاهد إعلاناً للانتقال إلى نهاية هذه الجولة وعرض كل النتائج.";
 "back" = "رجوع";
 "bestThirdPlaceSubtitle" = "أفضل 8 فرق في المركز الثالث تتأهل إلى دور الـ32.";
 "bestThirdPlaceTitle" = "أفضل المراكز الثالثة";

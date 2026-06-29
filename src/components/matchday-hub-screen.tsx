@@ -11,12 +11,11 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 
 import { shouldShowMatchdayBanner } from '@/ads/ad-policy';
 import { isRewardedAdsConfigured } from '@/ads/ad-units';
 import { maybeShowInterstitial, useAdIntensity } from '@/ads/mobile-ads-provider';
-import { showRewardedForAutoReveal } from '@/ads/rewarded-manager';
+import { showRewardedForScoreReveal } from '@/ads/rewarded-manager';
 import { AdBannerSlot } from '@/components/ad-banner-slot';
 import { ChampionCelebrationScreen } from '@/components/champion-celebration-screen';
 import { MatchdayGameplayBar } from '@/components/matchday-gameplay-bar';
@@ -31,7 +30,6 @@ import { TimelineMatchRow } from '@/components/timeline-match-row';
 import { UserMatchFocusScreen } from '@/components/user-match-focus-screen';
 import { worldCupGroupFixtures } from '@/data/worldcup-fixtures';
 import { teams, teamsById } from '@/data/teams';
-import { saveAppSettings } from '@/db/app-settings';
 import { useAnimatedMatchdayClock } from '@/hooks/use-animated-matchday-clock';
 import { useAiMatchScores } from '@/hooks/use-ai-match-scores';
 import { useInstantMatchdayClock } from '@/hooks/use-instant-matchday-clock';
@@ -46,13 +44,15 @@ import type { KnockoutRoundResult } from '@/simulation/simulate-knockout-stage';
 import { useAppStore } from '@/store/app-store';
 import { useGameAudioStore } from '@/store/game-audio-store';
 import { useTournamentStore } from '@/store/tournament-store';
-import type { AppSettings } from '@/types/app-settings';
 import { KNOCKOUT_ROUNDS, type KnockoutRound } from '@/types/knockout';
 import type { Match, MatchResult } from '@/types/match';
 import {
   formatClockDate,
   formatClockTime,
+  getActiveTimelineMatchday,
+  getFixtureClockEnd,
   getInitialViewMatchday,
+  getMatchdayClockEnd,
   getMatchdayClockStart,
   getTournamentClockStart,
   getUserGroupMatchAwaitingPrediction,
@@ -89,7 +89,6 @@ import {
   getOpponentPathSummary,
 } from '@/utils/user-match-context';
 import { Layout } from '@/theme/tokens';
-import { pickPersistableAppSettings } from '@/utils/pick-app-settings';
 import {
   buildKnockoutTimelineStateFromRoundResult,
   buildPendingKnockoutTimelineState,
@@ -169,14 +168,11 @@ function getSelectedTeamEliminationRound(
 export function MatchdayHubScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const db = useSQLiteContext();
   const { t, language } = useTranslation();
   const adIntensity = useAdIntensity();
   const showMatchdayBanner = shouldShowMatchdayBanner(adIntensity);
   const simulationSpeed = useAppStore((state) => state.simulationSpeed);
   const aiEnabled = useAppStore((state) => state.aiEnabled);
-  const autoReveal = useAppStore((state) => state.autoReveal);
-  const updateSettings = useAppStore((state) => state.updateSettings);
   const isInstantSpeed = isInstantSimulationSpeed(simulationSpeed);
   const requireAiScores = isInstantSpeed;
   const selectedTeamId = useTournamentStore((state) => state.selectedTeamId);
@@ -214,15 +210,7 @@ export function MatchdayHubScreen() {
   const [knockoutTimeline, setKnockoutTimeline] = useState<KnockoutTimelineState | null>(null);
   const [knockoutSpectatorMode, setKnockoutSpectatorMode] = useState(false);
   const [showEliminationChampion, setShowEliminationChampion] = useState(false);
-  const [autoRevealAdPending, setAutoRevealAdPending] = useState(false);
-
-  const persistSettings = useCallback(
-    async (patch: Partial<AppSettings>) => {
-      const nextSettings = updateSettings(patch);
-      await saveAppSettings(db, pickPersistableAppSettings(nextSettings));
-    },
-    [db, updateSettings],
-  );
+  const [scoreRevealPending, setScoreRevealPending] = useState(false);
 
   const continueToMainMenu = useCallback(() => {
     void (async () => {
@@ -231,30 +219,6 @@ export function MatchdayHubScreen() {
     })();
   }, [router]);
 
-  const handleAutoRevealChange = useCallback(
-    (value: boolean) => {
-      void (async () => {
-        if (!value) {
-          await persistSettings({ autoReveal: false });
-          return;
-        }
-
-        if (!isRewardedAdsConfigured()) {
-          await persistSettings({ autoReveal: true });
-          return;
-        }
-
-        setAutoRevealAdPending(true);
-        try {
-          await showRewardedForAutoReveal();
-          await persistSettings({ autoReveal: true });
-        } finally {
-          setAutoRevealAdPending(false);
-        }
-      })();
-    },
-    [persistSettings],
-  );
   const listRef = useRef<FlatList>(null);
   const userIsScrollingRef = useRef(false);
   const scrollOffsetRef = useRef(0);
@@ -287,7 +251,7 @@ export function MatchdayHubScreen() {
     setKnockoutTimeline(null);
     setKnockoutSpectatorMode(false);
     setShowEliminationChampion(false);
-    setAutoRevealAdPending(false);
+    setScoreRevealPending(false);
   }, [activeSimulationId]);
 
   const nextUserGroupMatch = useMemo(() => {
@@ -632,6 +596,61 @@ export function MatchdayHubScreen() {
     !roundSummaryGate &&
     !needsUserMatchPrediction &&
     !needsKnockoutPrediction;
+
+  const scoreRevealTargetClock = useMemo(() => {
+    if (!matchdayClock) {
+      return null;
+    }
+
+    if (knockoutTimelineActive && knockoutTimeline) {
+      return getFixtureClockEnd(knockoutTimeline.fixtures);
+    }
+
+    if (groupTimelineActive) {
+      return getMatchdayClockEnd(getActiveTimelineMatchday(matchdayClock));
+    }
+
+    return null;
+  }, [groupTimelineActive, knockoutTimeline, knockoutTimelineActive, matchdayClock]);
+
+  const canRevealScores =
+    scoreRevealTargetClock !== null &&
+    matchdayClock !== null &&
+    scoreRevealTargetClock.getTime() > matchdayClock.getTime() &&
+    !needsUserMatchPrediction &&
+    !needsKnockoutPrediction &&
+    roundSummaryGate === null;
+
+  const handleRevealScoresPress = useCallback(() => {
+    if (!canRevealScores || !scoreRevealTargetClock || scoreRevealPending) {
+      return;
+    }
+
+    void (async () => {
+      setScoreRevealPending(true);
+
+      try {
+        if (isRewardedAdsConfigured()) {
+          const rewarded = await showRewardedForScoreReveal();
+
+          if (!rewarded) {
+            return;
+          }
+        }
+
+        const targetTime = scoreRevealTargetClock.getTime();
+        setMatchdayClock((currentClock) => {
+          if (currentClock && currentClock.getTime() >= targetTime) {
+            return currentClock;
+          }
+
+          return new Date(targetTime);
+        });
+      } finally {
+        setScoreRevealPending(false);
+      }
+    })();
+  }, [canRevealScores, scoreRevealPending, scoreRevealTargetClock]);
 
   useLayoutEffect(() => {
     const focusMatch = needsUserMatchPrediction
@@ -1372,9 +1391,9 @@ export function MatchdayHubScreen() {
       }>
       {showMatchdayBanner ? <AdBannerSlot placement="matchday" /> : null}
       <MatchdayGameplayBar
-        autoReveal={autoReveal}
-        autoRevealPending={autoRevealAdPending}
-        onAutoRevealChange={handleAutoRevealChange}
+        revealScoresDisabled={!canRevealScores}
+        revealScoresPending={scoreRevealPending}
+        onRevealScoresPress={handleRevealScoresPress}
       />
       <MatchdayClockHeader dateLabel={tickerDateLabel} timeLabel={tickerTimeLabel} />
 

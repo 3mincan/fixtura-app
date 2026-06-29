@@ -19,5 +19,5 @@ export { maybeShowInterstitial, MobileAdsProvider, useAdIntensity } from '@/ads/
 export {
   preloadRewardedAd,
   rewardedAdManager,
-  showRewardedForAutoReveal,
+  showRewardedForScoreReveal,
 } from '@/ads/rewarded-manager';

@@ -1,20 +1,21 @@
-import { Switch, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { IosButton } from '@/components/ui/ios-button';
 import { useTranslation } from '@/hooks/use-translation';
 import { useTheme } from '@/hooks/use-theme';
 import { Layout } from '@/theme/tokens';
 
 type MatchdayGameplayBarProps = {
-  autoReveal: boolean;
-  autoRevealPending?: boolean;
-  onAutoRevealChange: (value: boolean) => void;
+  revealScoresDisabled?: boolean;
+  revealScoresPending?: boolean;
+  onRevealScoresPress: () => void;
 };
 
 export function MatchdayGameplayBar({
-  autoReveal,
-  autoRevealPending = false,
-  onAutoRevealChange,
+  revealScoresDisabled = false,
+  revealScoresPending = false,
+  onRevealScoresPress,
 }: MatchdayGameplayBarProps) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -26,17 +27,16 @@ export function MatchdayGameplayBar({
         { backgroundColor: theme.backgroundElement, borderColor: theme.border },
       ]}>
       <View style={styles.copy}>
-        <ThemedText type="body">{t('autoReveal')}</ThemedText>
         <ThemedText type="footnote" themeColor="textSecondary">
           {t('autoRevealDescription')}
         </ThemedText>
       </View>
-      <Switch
-        value={autoReveal}
-        disabled={autoRevealPending}
-        onValueChange={onAutoRevealChange}
-        trackColor={{ false: theme.border, true: theme.accentMuted }}
-        thumbColor={autoReveal || autoRevealPending ? theme.accent : theme.textDim}
+      <IosButton
+        label={t('autoReveal')}
+        onPress={onRevealScoresPress}
+        variant="tinted"
+        disabled={revealScoresDisabled || revealScoresPending}
+        style={styles.button}
       />
     </View>
   );
@@ -58,5 +58,10 @@ const styles = StyleSheet.create({
   copy: {
     flex: 1,
     gap: 2,
+  },
+  button: {
+    minHeight: 42,
+    minWidth: 128,
+    paddingHorizontal: 14,
   },
 });

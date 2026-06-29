@@ -173,6 +173,6 @@ export function preloadRewardedAd(): void {
   rewardedAdManager.preload();
 }
 
-export function showRewardedForAutoReveal(): Promise<boolean> {
+export function showRewardedForScoreReveal(): Promise<boolean> {
   return rewardedAdManager.showForReward();
 }

@@ -4,8 +4,8 @@
 "allResultsRevealed" = "All simulated group results have been revealed.";
 "appName" = "Fixtura";
 "appSubtitle" = "World Cup 2026 Simulation";
-"autoReveal" = "Auto-reveal";
-"autoRevealDescription" = "Reveal simulated matches automatically.";
+"autoReveal" = "Reveal scores";
+"autoRevealDescription" = "Watch an ad to jump to full time and show this round's scores.";
 "back" = "Back";
 "cancel" = "Cancel";
 "champion" = "Champion";

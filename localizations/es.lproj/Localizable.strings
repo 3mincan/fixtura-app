@@ -4,8 +4,8 @@
 "allResultsRevealed" = "Todos los resultados simulados del grupo han sido revelados.";
 "appName" = "Fixtura";
 "appSubtitle" = "Simulación del Mundial 2026";
-"autoReveal" = "Revelación automática";
-"autoRevealDescription" = "Revelar automáticamente los partidos simulados.";
+"autoReveal" = "Revelar marcadores";
+"autoRevealDescription" = "Mira un anuncio para saltar al final de esta ronda y mostrar todos los marcadores.";
 "back" = "Atrás";
 "bestThirdPlaceSubtitle" = "Los 8 mejores terceros clasificados avanzan a los dieciseisavos de final.";
 "bestThirdPlaceTitle" = "Mejores terceros";

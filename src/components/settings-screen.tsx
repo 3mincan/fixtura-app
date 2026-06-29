@@ -164,7 +164,7 @@ export function SettingsScreen() {
 
         <GroupedSection
           title={t('sectionPreferences')}
-          footer={`${t('languageDescription')}\n${t('defaultTeamDescription')}\n${t('autoRevealDescription')}`}>
+          footer={`${t('languageDescription')}\n${t('defaultTeamDescription')}`}>
           <LanguagePickerRow
             selectedLanguage={settings.language}
             onPress={() => router.push('/language')}

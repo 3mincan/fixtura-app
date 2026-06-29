@@ -14,7 +14,9 @@ import {
   getClockSubTickIntervalMs,
   getActiveTimelineMatchday,
   getClockTickIntervalMs,
+  getFixtureClockEnd,
   getInitialViewMatchday,
+  getMatchdayClockEnd,
   getMatchdayClockStart,
   getTournamentClockStart,
   getVisibleTimelineFixtures,
@@ -381,6 +383,30 @@ describe('matchday clock', () => {
 
     assert.equal(isMatchFinishedAtClock(sampleMatch, kickoff), false);
     assert.equal(isMatchFinishedAtClock(sampleMatch, fullTime), true);
+  });
+
+  it('finds the final whistle for a fixture batch and matchday', () => {
+    const earlyMatch: Match = {
+      ...sampleMatch,
+      id: 'round-of-32-early',
+      scheduledDate: '2026-06-29',
+      scheduledTime: '12:00 UTC-4',
+    };
+    const lateMatch: Match = {
+      ...sampleMatch,
+      id: 'round-of-32-late',
+      scheduledDate: '2026-06-29',
+      scheduledTime: '18:00 UTC-4',
+    };
+
+    const batchEnd = getFixtureClockEnd([earlyMatch, lateMatch]);
+
+    assert.ok(batchEnd);
+    assert.equal(batchEnd.toISOString(), '2026-06-29T23:45:00.000Z');
+    assert.deepEqual(
+      getMatchdayClockEnd('Matchday 1'),
+      getFixtureClockEnd(getMatchesForMatchday('Matchday 1')),
+    );
   });
 
   it('detects when every simulated matchday result has been shown', () => {

@@ -368,13 +368,17 @@ export function isMatchFinishedAtClock(match: Match, clock: Date): boolean {
   return clock.getTime() >= matchEnd.getTime();
 }
 
-export function getMatchdayClockEnd(matchday: string): Date | null {
-  const endTimes = getMatchesForMatchday(matchday)
+export function getFixtureClockEnd(fixtures: Match[]): Date | null {
+  const endTimes = fixtures
     .map(getMatchEndTime)
     .filter((endTime): endTime is Date => endTime !== null)
     .sort((endTimeA, endTimeB) => endTimeB.getTime() - endTimeA.getTime());
 
   return endTimes[0] ?? null;
+}
+
+export function getMatchdayClockEnd(matchday: string): Date | null {
+  return getFixtureClockEnd(getMatchesForMatchday(matchday));
 }
 
 export function sortFixturesByKickoff<T extends Match>(fixtures: T[]): T[] {

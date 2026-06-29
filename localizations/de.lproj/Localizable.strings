@@ -4,8 +4,8 @@
 "allResultsRevealed" = "Alle simulierten Gruppenergebnisse wurden aufgedeckt.";
 "appName" = "Fixtura";
 "appSubtitle" = "WM 2026 Simulation";
-"autoReveal" = "Automatisch aufdecken";
-"autoRevealDescription" = "Simulierte Spiele automatisch aufdecken.";
+"autoReveal" = "Ergebnisse aufdecken";
+"autoRevealDescription" = "Sieh dir eine Anzeige an, springe zum Abpfiff dieser Runde und zeige alle Ergebnisse.";
 "back" = "Zurück";
 "cancel" = "Abbrechen";
 "champion" = "Champion";

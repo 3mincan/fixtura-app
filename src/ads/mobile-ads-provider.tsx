@@ -74,13 +74,12 @@ export function MobileAdsProvider() {
 
 export function useAdIntensity() {
   const aiEnabled = useAppStore((state) => state.aiEnabled);
-  const autoReveal = useAppStore((state) => state.autoReveal);
 
-  return resolveAdIntensity({ aiEnabled, autoReveal });
+  return resolveAdIntensity({ aiEnabled, autoReveal: false });
 }
 
 export async function maybeShowInterstitial(gate: AdGate): Promise<void> {
-  const { aiEnabled, autoReveal } = useAppStore.getState();
-  const intensity = resolveAdIntensity({ aiEnabled, autoReveal });
+  const { aiEnabled } = useAppStore.getState();
+  const intensity = resolveAdIntensity({ aiEnabled, autoReveal: false });
   await showInterstitialIfAllowed(gate, intensity);
 }

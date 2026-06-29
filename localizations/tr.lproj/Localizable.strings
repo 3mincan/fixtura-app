@@ -4,8 +4,8 @@
 "allResultsRevealed" = "Tüm simüle edilen grup sonuçları açıldı.";
 "appName" = "Fixtura";
 "appSubtitle" = "2026 Dünya Kupası Simülasyonu";
-"autoReveal" = "Otomatik açılış";
-"autoRevealDescription" = "Simüle edilen maçları otomatik olarak aç.";
+"autoReveal" = "Skorları aç";
+"autoRevealDescription" = "Reklam izleyip bu turun son düdüğüne atla ve skorları göster.";
 "back" = "Geri";
 "cancel" = "İptal";
 "champion" = "Şampiyon";
