@@ -6,6 +6,7 @@ import {
   shouldPauseForPendingTimelinePrediction,
 } from '@/hooks/use-animated-matchday-clock';
 import type { Match } from '@/types/match';
+import { parseMatchKickoff } from '@/utils/matchday-clock';
 
 const knockoutMatch: Match = {
   id: 'round-of-32-1',
@@ -19,7 +20,7 @@ const knockoutMatch: Match = {
 
 describe('useAnimatedMatchdayClock helpers', () => {
   it('does not pause at pending knockout predictions when user matches are auto-simulated', () => {
-    const kickoff = new Date('2026-06-28T12:00:00');
+    const kickoff = parseMatchKickoff(knockoutMatch)!;
 
     assert.equal(
       shouldPauseForPendingTimelinePrediction({
@@ -33,8 +34,9 @@ describe('useAnimatedMatchdayClock helpers', () => {
   });
 
   it('does not cap knockout clock advancement when user matches are auto-simulated', () => {
-    const beforeKickoff = new Date('2026-06-28T11:30:00');
-    const proposedAfterKickoff = new Date('2026-06-28T13:00:00');
+    const kickoff = parseMatchKickoff(knockoutMatch)!;
+    const beforeKickoff = new Date(kickoff.getTime() - 30 * 60_000);
+    const proposedAfterKickoff = new Date(kickoff.getTime() + 60 * 60_000);
 
     assert.equal(
       capClockAtPendingTimelinePrediction({
@@ -49,7 +51,7 @@ describe('useAnimatedMatchdayClock helpers', () => {
   });
 
   it('still pauses at pending knockout predictions in pick-team mode', () => {
-    const kickoff = new Date('2026-06-28T12:00:00');
+    const kickoff = parseMatchKickoff(knockoutMatch)!;
 
     assert.equal(
       shouldPauseForPendingTimelinePrediction({

@@ -180,6 +180,7 @@ export function MatchdayHubScreen() {
   const gameMode = useTournamentStore((state) => state.gameMode);
   const startMode = useTournamentStore((state) => state.startMode);
   const startDate = useTournamentStore((state) => state.startDate);
+  const startTimestamp = useTournamentStore((state) => state.startTimestamp);
   const isRandomGame = gameMode === 'random';
   const useOfficialResults = startMode === 'today';
   const tournamentPhase = useTournamentStore((state) => state.tournamentPhase);
@@ -408,6 +409,7 @@ export function MatchdayHubScreen() {
   useEffect(() => {
     if (
       !selectedTeamId ||
+      tournamentPhase !== 'group' ||
       !matchdayClock ||
       groupSummaryTriggeredRef.current ||
       roundSummaryGate !== null
@@ -441,6 +443,7 @@ export function MatchdayHubScreen() {
     }
   }, [
     selectedTeamId,
+    tournamentPhase,
     matchdayClock,
     matchdayResultMatches,
     userPredictions,
@@ -753,6 +756,7 @@ export function MatchdayHubScreen() {
         : pendingKnockoutTimelineRounds;
     const clockStart = getTournamentClockStart(timeline.fixtures, {
       startDate: useOfficialResults ? startDate : null,
+      startAt: useOfficialResults ? startTimestamp : null,
     });
 
     setKnockoutTimeline(timeline);
@@ -770,6 +774,7 @@ export function MatchdayHubScreen() {
     roundOf32Fixtures,
     selectedTeamId,
     startDate,
+    startTimestamp,
     userPredictions,
     useOfficialResults,
   ]);

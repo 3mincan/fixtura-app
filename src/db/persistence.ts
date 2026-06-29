@@ -22,6 +22,7 @@ type SimulationProgressJson = {
   gameMode?: TournamentProgressState['gameMode'];
   startMode?: TournamentProgressState['startMode'];
   startDate?: TournamentProgressState['startDate'];
+  startTimestamp?: TournamentProgressState['startTimestamp'];
   completedMatches: Match[];
   userPredictions: Record<string, UserMatchPrediction>;
   roundOf32Fixtures: KnockoutBracketMatch[];
@@ -80,6 +81,7 @@ export function toPersistableState(state: TournamentProgressState): TournamentPr
     gameMode: state.gameMode,
     startMode: state.startMode,
     startDate: state.startDate,
+    startTimestamp: state.startTimestamp,
     activeSimulationId: state.activeSimulationId,
     currentStage: state.currentStage,
     tournamentPhase: state.tournamentPhase,
@@ -166,6 +168,7 @@ function toProgressJson(state: TournamentProgressState): string {
     gameMode: state.gameMode,
     startMode: state.startMode,
     startDate: state.startDate,
+    startTimestamp: state.startTimestamp,
     completedMatches: state.completedMatches,
     userPredictions: state.userPredictions,
     roundOf32Fixtures: state.roundOf32Fixtures,
@@ -217,11 +220,14 @@ function buildLoadedState(simulation: SimulationRow | null): TournamentProgressS
   const startMode = progress.startMode ?? 'beginning';
   const startDate =
     progress.startDate ?? (startMode === 'today' ? formatPersistedStartDate(new Date()) : null);
+  const startTimestamp =
+    progress.startTimestamp ?? (startMode === 'today' ? new Date().toISOString() : null);
   const state: TournamentProgressState = {
     selectedTeamId: simulation.team_id,
     gameMode: progress.gameMode ?? 'predict',
     startMode,
     startDate,
+    startTimestamp,
     activeSimulationId: simulation.id,
     currentStage: simulation.current_stage,
     tournamentPhase: simulation.tournament_phase,

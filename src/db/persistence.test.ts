@@ -65,6 +65,7 @@ describe('tournament persistence', () => {
 
     assert.equal(beforeRestart.startMode, 'today');
     assert.equal(beforeRestart.startDate, '2026-06-29');
+    assert.ok(beforeRestart.startTimestamp);
     assert.equal(beforeRestart.tournamentPhase, 'knockout');
 
     resetStore();
@@ -77,6 +78,7 @@ describe('tournament persistence', () => {
     assert.equal(state.selectedTeamId, 'mex');
     assert.equal(state.startMode, 'today');
     assert.equal(state.startDate, '2026-06-29');
+    assert.equal(state.startTimestamp, beforeRestart.startTimestamp);
     assert.equal(state.tournamentPhase, beforeRestart.tournamentPhase);
     assert.equal(state.pendingKnockoutFixture?.id, beforeRestart.pendingKnockoutFixture?.id);
   });

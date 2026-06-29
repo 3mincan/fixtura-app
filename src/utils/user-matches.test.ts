@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { teams } from '@/data/teams';
-import { getUserGroupMatchAwaitingPrediction } from '@/utils/matchday-clock';
+import {
+  getUserGroupMatchAwaitingPrediction,
+  parseMatchKickoff,
+  UPCOMING_WINDOW_MS,
+} from '@/utils/matchday-clock';
 import { getNextUserMatch, getUserGroupMatches } from '@/utils/user-matches';
 
 describe('user matches', () => {
@@ -26,7 +30,11 @@ describe('user matches', () => {
 
   it('finds the user match awaiting prediction one hour before kickoff', () => {
     const turMatch = getUserGroupMatches('tur', teams)[1]!;
-    const oneHourBefore = new Date(`${turMatch.scheduledDate}T19:00:00`);
+    const kickoff = parseMatchKickoff(turMatch);
+
+    assert.ok(kickoff);
+
+    const oneHourBefore = new Date(kickoff.getTime() - UPCOMING_WINDOW_MS);
 
     assert.equal(
       getUserGroupMatchAwaitingPrediction('tur', teams, oneHourBefore, {})?.id,
@@ -36,7 +44,9 @@ describe('user matches', () => {
 
   it('finds the user match awaiting prediction once kickoff is reached', () => {
     const turMatch = getUserGroupMatches('tur', teams)[1]!;
-    const kickoff = new Date(`${turMatch.scheduledDate}T20:00:00`);
+    const kickoff = parseMatchKickoff(turMatch);
+
+    assert.ok(kickoff);
 
     assert.equal(
       getUserGroupMatchAwaitingPrediction('tur', teams, kickoff, {})?.id,

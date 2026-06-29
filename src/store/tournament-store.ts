@@ -38,6 +38,7 @@ export type TournamentProgressState = {
   gameMode: GameMode;
   startMode: TournamentStartMode;
   startDate: string | null;
+  startTimestamp: string | null;
   activeSimulationId: string | null;
   currentStage: TournamentStage;
   tournamentPhase: TournamentJourneyPhase;
@@ -82,6 +83,7 @@ const initialState: TournamentProgressState = {
   gameMode: 'predict',
   startMode: 'beginning',
   startDate: null,
+  startTimestamp: null,
   activeSimulationId: null,
   currentStage: 'group',
   tournamentPhase: 'group',
@@ -182,6 +184,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
     const useOfficialResults = shouldUseOfficialResults(startMode);
     const currentDate = options?.currentDate ?? new Date();
     const startDate = startMode === 'today' ? formatFixtureDate(currentDate) : null;
+    const startTimestamp = startMode === 'today' ? currentDate.toISOString() : null;
     const completedMatches =
       startMode === 'today' ? getCompletedGroupMatchesThroughDate(currentDate) : [];
     const groupStandings =
@@ -225,6 +228,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
         gameMode,
         startMode,
         startDate,
+        startTimestamp,
         activeSimulationId: createSimulationId(),
         completedMatches,
         pendingUserMatch: getNextUserMatch(startSelectedTeamId, teams, completedMatches, {
@@ -244,6 +248,7 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
       selectedTeamId: teamId,
       startMode,
       startDate,
+      startTimestamp,
       pendingUserMatch: getNextUserMatch(teamId, teams, state.completedMatches, {
         useOfficialResults,
       }),
@@ -491,6 +496,8 @@ export const useTournamentStore = create<TournamentStore>((set, get) => ({
       gameMode: saved.gameMode ?? 'predict',
       startMode,
       startDate: saved.startDate ?? (startMode === 'today' ? formatFixtureDate(new Date()) : null),
+      startTimestamp:
+        saved.startTimestamp ?? (startMode === 'today' ? new Date().toISOString() : null),
       activeSimulationId: saved.activeSimulationId,
       currentStage: saved.currentStage,
       tournamentPhase: saved.tournamentPhase,

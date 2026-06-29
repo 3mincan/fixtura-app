@@ -86,16 +86,29 @@ export function parseMatchKickoff(match: Match): Date | null {
     return null;
   }
 
-  const kickoff = match.scheduledTime?.split(' ')[0] ?? '12:00';
+  const timeParts = match.scheduledTime?.split(' ') ?? ['12:00'];
+  const kickoff = timeParts[0] ?? '12:00';
   const [hours, minutes] = kickoff.split(':').map((value) => Number.parseInt(value, 10));
 
   if (Number.isNaN(hours) || Number.isNaN(minutes)) {
     return null;
   }
 
-  return new Date(
-    `${match.scheduledDate}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`,
+  const offset = timeParts
+    .find((part) => /^UTC[+-]\d{1,2}$/.test(part))
+    ?.match(/^UTC([+-])(\d{1,2})$/);
+  const timezoneOffset = offset
+    ? `${offset[1]}${offset[2].padStart(2, '0')}:00`
+    : '';
+  const kickoffDate = new Date(
+    `${match.scheduledDate}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00${timezoneOffset}`,
   );
+
+  if (Number.isNaN(kickoffDate.getTime())) {
+    return null;
+  }
+
+  return kickoffDate;
 }
 
 export function getMatchdayClockStart(matchday: string): Date | null {
@@ -109,10 +122,15 @@ export function getMatchdayClockStart(matchday: string): Date | null {
 
 export function getTournamentClockStart(
   fixtures: Match[] = worldCupGroupFixtures,
-  options: { startDate?: string | null } = {},
+  options: { startDate?: string | null; startAt?: Date | string | null } = {},
 ): Date | null {
   const sortedFixtures = sortFixturesByKickoff(fixtures);
   let firstKickoff: Date | null = null;
+  const startAt =
+    typeof options.startAt === 'string'
+      ? new Date(options.startAt)
+      : options.startAt ?? null;
+  const startAtTime = startAt && !Number.isNaN(startAt.getTime()) ? startAt.getTime() : null;
 
   for (const fixture of sortedFixtures) {
     const kickoff = parseMatchKickoff(fixture);
@@ -123,7 +141,12 @@ export function getTournamentClockStart(
 
     firstKickoff ??= kickoff;
 
+    if (startAtTime !== null && kickoff.getTime() >= startAtTime) {
+      return kickoff;
+    }
+
     if (
+      startAtTime === null &&
       options.startDate &&
       fixture.scheduledDate !== undefined &&
       fixture.scheduledDate >= options.startDate

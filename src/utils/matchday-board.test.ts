@@ -2,6 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  MATCH_DURATION_MINUTES,
+  parseMatchKickoff,
+  UPCOMING_WINDOW_MS,
+} from '@/utils/matchday-clock';
+import {
   buildMatchdayBoard,
   buildTimelineBoard,
   getLiveBoardEntryRange,
@@ -48,6 +53,13 @@ const completedKorCze: Match = {
   result: { regulation: { home: 1, away: 2 } },
 };
 
+function clockFromKickoff(match: Match, offsetMinutes: number): Date {
+  const kickoff = parseMatchKickoff(match);
+
+  assert.ok(kickoff);
+  return new Date(kickoff.getTime() + offsetMinutes * 60_000);
+}
+
 describe('buildMatchdayBoard', () => {
   it('orders matches by kickoff time', () => {
     const entries = buildMatchdayBoard({
@@ -73,7 +85,7 @@ describe('buildMatchdayBoard', () => {
       userTeamId: 'mex',
       completedMatches: [],
       userPredictions: {},
-      clock: new Date('2026-06-11T13:30:00'),
+      clock: clockFromKickoff(mexRsa, 30),
       clockPhaseActive: true,
     });
 
@@ -96,7 +108,7 @@ describe('buildMatchdayBoard', () => {
       completedMatches: [],
       previewMatches: [previewMexRsa],
       userPredictions: {},
-      clock: new Date('2026-06-11T13:20:00'),
+      clock: clockFromKickoff(mexRsa, 20),
       clockPhaseActive: true,
     });
     const finishedEntries = buildMatchdayBoard({
@@ -105,7 +117,7 @@ describe('buildMatchdayBoard', () => {
       completedMatches: [],
       previewMatches: [previewMexRsa],
       userPredictions: {},
-      clock: new Date('2026-06-11T21:45:00'),
+      clock: clockFromKickoff(mexRsa, MATCH_DURATION_MINUTES),
       clockPhaseActive: true,
     });
 
@@ -125,7 +137,7 @@ describe('buildMatchdayBoard', () => {
       userTeamId: 'mex',
       completedMatches: [completedKorCze],
       userPredictions: {},
-      clock: new Date('2026-06-11T21:45:00'),
+      clock: clockFromKickoff(korCze, MATCH_DURATION_MINUTES),
       clockPhaseActive: true,
     });
 
@@ -158,7 +170,7 @@ describe('buildMatchdayBoard', () => {
       userTeamId: 'mex',
       completedMatches: [],
       userPredictions: {},
-      clock: new Date('2026-06-11T12:00:00'),
+      clock: clockFromKickoff(mexRsa, -UPCOMING_WINDOW_MS / 60_000),
       clockPhaseActive: true,
     });
 
@@ -170,7 +182,7 @@ describe('buildMatchdayBoard', () => {
   });
 
   it('shows every match in the active matchday before kickoff', () => {
-    const start = new Date('2026-06-11T12:00:00');
+    const start = clockFromKickoff(mexRsa, -UPCOMING_WINDOW_MS / 60_000);
     const entries = buildTimelineBoard({
       userTeamId: 'mex',
       completedMatches: [],
@@ -188,7 +200,7 @@ describe('buildMatchdayBoard', () => {
       userTeamId: 'mex',
       completedMatches: [],
       previewMatches: [completedKorCze],
-      clock: new Date('2026-06-11T21:00:00'),
+      clock: clockFromKickoff(mexRsa, 120),
       clockPhaseActive: true,
     });
     const june12Morning = buildTimelineBoard({
@@ -213,7 +225,7 @@ describe('buildMatchdayBoard', () => {
       completedMatches: [],
       previewMatches: [completedKorCze],
       userPredictions: {},
-      clock: new Date('2026-06-11T21:45:00'),
+      clock: clockFromKickoff(korCze, MATCH_DURATION_MINUTES),
       clockPhaseActive: true,
     });
 
@@ -266,7 +278,7 @@ describe('timeline board presentation helpers', () => {
 
   it('finds timeline focus from the simulated clock', () => {
     assert.deepEqual(
-      getTimelineFocusEntryRange(entries, new Date('2026-06-11T20:30:00')),
+      getTimelineFocusEntryRange(entries, clockFromKickoff(korCze, 30)),
       {
         firstIndex: 1,
         lastIndex: 1,
@@ -274,7 +286,7 @@ describe('timeline board presentation helpers', () => {
       },
     );
     assert.equal(
-      getTimelineFocusEntryRange(entries, new Date('2026-06-11T12:00:00')),
+      getTimelineFocusEntryRange(entries, clockFromKickoff(mexRsa, -120)),
       null,
     );
   });

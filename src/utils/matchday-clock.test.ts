@@ -56,8 +56,7 @@ describe('matchday clock', () => {
     const kickoff = parseMatchKickoff(sampleMatch);
 
     assert.ok(kickoff);
-    assert.equal(kickoff.getHours(), 19);
-    assert.equal(kickoff.getMinutes(), 0);
+    assert.equal(kickoff.toISOString(), '2026-06-19T01:00:00.000Z');
   });
 
   it('advances one simulated hour per second while a match is live', () => {
@@ -336,11 +335,40 @@ describe('matchday clock', () => {
     const start = getTournamentClockStart(fixtures, { startDate: '2026-06-29' });
 
     assert.ok(start);
-    assert.equal(start.getFullYear(), 2026);
-    assert.equal(start.getMonth(), 5);
-    assert.equal(start.getDate(), 29);
-    assert.equal(start.getHours(), 16);
-    assert.equal(start.getMinutes(), 30);
+    assert.equal(start.toISOString(), '2026-06-29T20:30:00.000Z');
+  });
+
+  it('anchors tournament clock to the first kickoff after a requested instant', () => {
+    const fixtures: Match[] = [
+      {
+        ...sampleMatch,
+        id: 'round-of-32-earlier-today',
+        stage: 'round-of-32',
+        scheduledDate: '2026-06-29',
+        scheduledTime: '12:00 UTC-5',
+      },
+      {
+        ...sampleMatch,
+        id: 'round-of-32-later-today',
+        stage: 'round-of-32',
+        scheduledDate: '2026-06-29',
+        scheduledTime: '16:30 UTC-4',
+      },
+      {
+        ...sampleMatch,
+        id: 'round-of-32-tomorrow',
+        stage: 'round-of-32',
+        scheduledDate: '2026-06-30',
+        scheduledTime: '12:00 UTC-5',
+      },
+    ];
+
+    const start = getTournamentClockStart(fixtures, {
+      startAt: '2026-06-29T18:00:00.000Z',
+    });
+
+    assert.ok(start);
+    assert.equal(start.toISOString(), '2026-06-29T20:30:00.000Z');
   });
 
   it('uses a 105 minute match duration including halftime', () => {
@@ -407,7 +435,7 @@ describe('matchday clock', () => {
   });
 
   it('keeps finished fixtures and adds the next day inside the 72-hour window', () => {
-    const afterMatchdayOne = new Date('2026-06-11T22:30:00');
+    const afterMatchdayOne = new Date('2026-06-12T04:00:00.000Z');
     const visible = getVisibleTimelineFixtures(afterMatchdayOne);
     const visibleIds = new Set(visible.map((fixture) => fixture.id));
     const matchdayOneIds = new Set(
@@ -439,8 +467,8 @@ describe('matchday clock', () => {
       (fixture) => fixture.homeTeamId === 'mex',
     )!;
 
-    assert.equal(isMatchWithinUpcomingWindow(mexRsa, new Date('2026-06-11T12:00:00')), true);
-    assert.equal(isMatchWithinUpcomingWindow(mexRsa, new Date('2026-06-11T11:00:00')), false);
-    assert.equal(isMatchWithinUpcomingWindow(mexRsa, new Date('2026-06-11T13:00:00')), false);
+    assert.equal(isMatchWithinUpcomingWindow(mexRsa, new Date('2026-06-11T18:00:00.000Z')), true);
+    assert.equal(isMatchWithinUpcomingWindow(mexRsa, new Date('2026-06-11T17:00:00.000Z')), false);
+    assert.equal(isMatchWithinUpcomingWindow(mexRsa, new Date('2026-06-11T19:00:00.000Z')), false);
   });
 });
