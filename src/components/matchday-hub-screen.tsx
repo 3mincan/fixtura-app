@@ -20,7 +20,6 @@ import { AdBannerSlot } from '@/components/ad-banner-slot';
 import { ChampionCelebrationScreen } from '@/components/champion-celebration-screen';
 import { MatchdayGameplayBar } from '@/components/matchday-gameplay-bar';
 import { KnockoutPredictionForm } from '@/components/knockout-prediction-form';
-import { MatchCard } from '@/components/match-card';
 import { ThemedText } from '@/components/themed-text';
 import { TournamentRoundSummaryScreen } from '@/components/tournament-round-summary-screen';
 import { IosButton } from '@/components/ui/ios-button';
@@ -1354,13 +1353,6 @@ export function MatchdayHubScreen() {
             keyboardShouldPersistTaps="handled"
             contentInsetAdjustmentBehavior="automatic"
             showsVerticalScrollIndicator={false}>
-            <MatchCard
-              match={activeKnockoutUserMatch}
-              status="your-match"
-              homeScore={null}
-              awayScore={null}
-              isUserMatch
-            />
             {opponentPathSummary ? (
               <ThemedText
                 type="footnote"
@@ -1453,7 +1445,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   opponentSummary: {
-    marginTop: 8,
     marginBottom: 12,
     lineHeight: 18,
     textAlign: 'center',
