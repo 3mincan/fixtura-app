@@ -18,6 +18,12 @@ import { Layout } from '@/theme/tokens';
 import type { MatchCardStatus } from '@/utils/matchday-board';
 import type { Match } from '@/types/match';
 import { getPredictionValidationError } from '@/utils/prediction-validation';
+import {
+  clearDefaultGoalOnFocus,
+  normalizeGoalInputText,
+  parseGoalInput,
+  restoreBlankGoalOnBlur,
+} from '@/utils/score-input';
 
 type MatchCardProps = {
   match: Match;
@@ -74,20 +80,6 @@ function getBadgeVariant(status: MatchCardStatus, isUserMatch: boolean): MatchCa
   }
 
   return 'scheduled';
-}
-
-function parseGoalInput(value: string): number | null {
-  if (value.trim() === '') {
-    return 0;
-  }
-
-  const parsed = Number.parseInt(value, 10);
-
-  if (Number.isNaN(parsed) || parsed < 0) {
-    return null;
-  }
-
-  return parsed;
 }
 
 function getAccentColor(
@@ -213,10 +205,11 @@ function MatchCardComponent({
                   </ThemedText>
                   <TextInput
                     value={homeGoalsInput}
-                    onChangeText={setHomeGoalsInput}
+                    onChangeText={(value) => setHomeGoalsInput(normalizeGoalInputText(value))}
+                    onFocus={() => setHomeGoalsInput((value) => clearDefaultGoalOnFocus(value))}
+                    onBlur={() => setHomeGoalsInput((value) => restoreBlankGoalOnBlur(value))}
                     keyboardType="number-pad"
                     maxLength={2}
-                    selectTextOnFocus
                     style={[
                       styles.predictionInput,
                       {
@@ -234,10 +227,11 @@ function MatchCardComponent({
                   </ThemedText>
                   <TextInput
                     value={awayGoalsInput}
-                    onChangeText={setAwayGoalsInput}
+                    onChangeText={(value) => setAwayGoalsInput(normalizeGoalInputText(value))}
+                    onFocus={() => setAwayGoalsInput((value) => clearDefaultGoalOnFocus(value))}
+                    onBlur={() => setAwayGoalsInput((value) => restoreBlankGoalOnBlur(value))}
                     keyboardType="number-pad"
                     maxLength={2}
-                    selectTextOnFocus
                     style={[
                       styles.predictionInput,
                       {

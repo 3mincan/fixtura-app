@@ -10,25 +10,17 @@ import { Layout, Radii } from '@/theme/tokens';
 import type { Match , MatchResult } from '@/types/match';
 import type { KnockoutPredictionPhase } from '@/utils/knockout-prediction';
 import { getPredictionValidationError } from '@/utils/prediction-validation';
+import {
+  clearDefaultGoalOnFocus,
+  normalizeGoalInputText,
+  parseGoalInput,
+  restoreBlankGoalOnBlur,
+} from '@/utils/score-input';
 
 type KnockoutPredictionFormProps = {
   match: Match;
   onSubmit: (result: MatchResult) => void;
 };
-
-function parseGoalInput(value: string): number | null {
-  if (value.trim() === '') {
-    return 0;
-  }
-
-  const parsed = Number.parseInt(value, 10);
-
-  if (Number.isNaN(parsed) || parsed < 0) {
-    return null;
-  }
-
-  return parsed;
-}
 
 function getPhaseTitle(
   phase: KnockoutPredictionPhase,
@@ -198,10 +190,11 @@ export function KnockoutPredictionForm({ match, onSubmit }: KnockoutPredictionFo
           </ThemedText>
           <TextInput
             value={homeGoalsInput}
-            onChangeText={setHomeGoalsInput}
+            onChangeText={(value) => setHomeGoalsInput(normalizeGoalInputText(value))}
+            onFocus={() => setHomeGoalsInput((value) => clearDefaultGoalOnFocus(value))}
+            onBlur={() => setHomeGoalsInput((value) => restoreBlankGoalOnBlur(value))}
             keyboardType="number-pad"
             maxLength={2}
-            selectTextOnFocus
             style={[
               styles.predictionInput,
               {
@@ -219,10 +212,11 @@ export function KnockoutPredictionForm({ match, onSubmit }: KnockoutPredictionFo
           </ThemedText>
           <TextInput
             value={awayGoalsInput}
-            onChangeText={setAwayGoalsInput}
+            onChangeText={(value) => setAwayGoalsInput(normalizeGoalInputText(value))}
+            onFocus={() => setAwayGoalsInput((value) => clearDefaultGoalOnFocus(value))}
+            onBlur={() => setAwayGoalsInput((value) => restoreBlankGoalOnBlur(value))}
             keyboardType="number-pad"
             maxLength={2}
-            selectTextOnFocus
             style={[
               styles.predictionInput,
               {

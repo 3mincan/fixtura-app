@@ -37,8 +37,8 @@ describe('banner placement policy', () => {
     assert.equal(shouldShowHomeBanner('minimal'), true);
   });
 
-  it('hides matchday banners in minimal mode', () => {
-    assert.equal(shouldShowMatchdayBanner('minimal'), false);
+  it('always allows matchday banners', () => {
+    assert.equal(shouldShowMatchdayBanner('minimal'), true);
     assert.equal(shouldShowMatchdayBanner('normal'), true);
   });
 });

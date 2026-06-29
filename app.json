@@ -76,5 +76,10 @@
       }
     },
     "owner": "edemirkaya"
+  },
+  "react-native-google-mobile-ads": {
+    "ios_app_id": "ca-app-pub-8524608486958068~3120395033",
+    "android_app_id": "ca-app-pub-3940256099942544~3347511713",
+    "delay_app_measurement_init": true
   }
 }

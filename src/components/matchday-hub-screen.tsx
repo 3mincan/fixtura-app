@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
+  KeyboardAvoidingView,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
   type LayoutChangeEvent,
@@ -12,6 +14,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { shouldShowMatchdayBanner } from '@/ads/ad-policy';
+import { isRewardedAdsConfigured } from '@/ads/ad-units';
 import { maybeShowInterstitial, useAdIntensity } from '@/ads/mobile-ads-provider';
 import { showRewardedForAutoReveal } from '@/ads/rewarded-manager';
 import { AdBannerSlot } from '@/components/ad-banner-slot';
@@ -236,14 +239,15 @@ export function MatchdayHubScreen() {
           return;
         }
 
+        if (!isRewardedAdsConfigured()) {
+          await persistSettings({ autoReveal: true });
+          return;
+        }
+
         setAutoRevealAdPending(true);
-
         try {
-          const rewarded = await showRewardedForAutoReveal();
-
-          if (rewarded) {
-            await persistSettings({ autoReveal: true });
-          }
+          await showRewardedForAutoReveal();
+          await persistSettings({ autoReveal: true });
         } finally {
           setAutoRevealAdPending(false);
         }
@@ -1288,27 +1292,37 @@ export function MatchdayHubScreen() {
           timeLabel={tickerTimeLabel}
           stageLabel={userMatchStageLabel}
         />
-        <View style={styles.focusBody}>
-          <MatchCard
-            match={activeKnockoutUserMatch}
-            status="your-match"
-            homeScore={null}
-            awayScore={null}
-            isUserMatch
-          />
-          {opponentPathSummary ? (
-            <ThemedText
-              type="footnote"
-              themeColor="textSecondary"
-              style={styles.opponentSummary}>
-              {opponentPathSummary}
-            </ThemedText>
-          ) : null}
-          <KnockoutPredictionForm
-            match={activeKnockoutUserMatch}
-            onSubmit={handleKnockoutPrediction}
-          />
-        </View>
+        <KeyboardAvoidingView
+          style={styles.focusKeyboardAvoider}
+          behavior={process.env.EXPO_OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView
+            style={styles.focusScroll}
+            contentContainerStyle={styles.focusBody}
+            keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
+            contentInsetAdjustmentBehavior="automatic"
+            showsVerticalScrollIndicator={false}>
+            <MatchCard
+              match={activeKnockoutUserMatch}
+              status="your-match"
+              homeScore={null}
+              awayScore={null}
+              isUserMatch
+            />
+            {opponentPathSummary ? (
+              <ThemedText
+                type="footnote"
+                themeColor="textSecondary"
+                style={styles.opponentSummary}>
+                {opponentPathSummary}
+              </ThemedText>
+            ) : null}
+            <KnockoutPredictionForm
+              match={activeKnockoutUserMatch}
+              onSubmit={handleKnockoutPrediction}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
       </IosScreen>
     );
   }
@@ -1375,9 +1389,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   focusBody: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: Layout.groupedHorizontal,
     paddingTop: 8,
+    paddingBottom: 160,
+  },
+  focusKeyboardAvoider: {
+    flex: 1,
+  },
+  focusScroll: {
+    flex: 1,
   },
   opponentSummary: {
     marginTop: 8,

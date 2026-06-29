@@ -25,8 +25,8 @@ export function resolveAdIntensity(input: AdPolicyInput): AdIntensity {
   return 'minimal';
 }
 
-export function shouldShowMatchdayBanner(intensity: AdIntensity): boolean {
-  return intensity !== 'minimal';
+export function shouldShowMatchdayBanner(_intensity: AdIntensity): boolean {
+  return true;
 }
 
 export function shouldShowHomeBanner(_intensity: AdIntensity): boolean {

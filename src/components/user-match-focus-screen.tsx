@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 
 import { MatchCard } from '@/components/match-card';
 import { ThemedText } from '@/components/themed-text';
@@ -36,24 +36,34 @@ export function UserMatchFocusScreen({
         stageLabel={stageLabel}
       />
 
-      <View style={styles.body}>
-        <MatchCard
-          match={match}
-          status="your-match"
-          homeScore={null}
-          awayScore={null}
-          isUserMatch
-          showPrediction={!isKnockout}
-          isKnockout={isKnockout}
-          onSubmitPrediction={onSubmitPrediction}
-        />
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={process.env.EXPO_OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          style={styles.scrollBody}
+          contentContainerStyle={styles.body}
+          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="handled"
+          contentInsetAdjustmentBehavior="automatic"
+          showsVerticalScrollIndicator={false}>
+          <MatchCard
+            match={match}
+            status="your-match"
+            homeScore={null}
+            awayScore={null}
+            isUserMatch
+            showPrediction={!isKnockout}
+            isKnockout={isKnockout}
+            onSubmitPrediction={onSubmitPrediction}
+          />
 
-        {opponentSummary ? (
-          <ThemedText type="footnote" themeColor="textSecondary" style={styles.opponentSummary}>
-            {opponentSummary}
-          </ThemedText>
-        ) : null}
-      </View>
+          {opponentSummary ? (
+            <ThemedText type="footnote" themeColor="textSecondary" style={styles.opponentSummary}>
+              {opponentSummary}
+            </ThemedText>
+          ) : null}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </>
   );
 
@@ -72,10 +82,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.72)',
   },
-  body: {
+  keyboardAvoider: {
     flex: 1,
+  },
+  scrollBody: {
+    flex: 1,
+  },
+  body: {
+    flexGrow: 1,
     paddingHorizontal: Layout.groupedHorizontal,
     paddingTop: 8,
+    paddingBottom: 160,
   },
   opponentSummary: {
     marginTop: 4,
